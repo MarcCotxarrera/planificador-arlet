@@ -1,0 +1,3482 @@
+<!DOCTYPE html>
+
+<html lang="ca">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport"/>
+<meta content="yes" name="apple-mobile-web-app-capable"/>
+<meta content="default" name="apple-mobile-web-app-status-bar-style"/>
+<meta content="Planificador" name="apple-mobile-web-app-title"/>
+<meta content="#818cf8" name="theme-color"/>
+<title>El meu planificador 📚</title>
+
+<style>
+/* ─── RESET & BASE ─────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f0f4f8;color:#1e293b;min-height:100vh;padding-bottom:90px;font-size:14px}
+.panel{display:none;padding:16px;max-width:520px;margin:0 auto}.panel.on{display:block}
+/* ─── CARDS & TYPOGRAPHY ─────────────────────────────── */
+.card{background:#fff;border:1px solid #e2e8f0;border-radius:16px;padding:14px;margin-bottom:12px;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+h2{font-size:17px;font-weight:800;margin-bottom:10px;color:#1e293b}
+h3{font-size:14px;font-weight:700;margin-bottom:8px;color:#334155}
+label{display:block;font-size:12px;color:#64748b;margin:8px 0 3px;font-weight:600}
+input,select{width:100%;padding:9px 12px;border-radius:10px;border:1.5px solid #e2e8f0;background:#f8fafc;color:#1e293b;font-size:13px;margin-bottom:2px}
+input:focus,select:focus{outline:none;border-color:#818cf8}
+/* ─── BUTTONS ─────────────────────────────────────────── */
+button{font-size:13px;padding:8px 14px;border-radius:10px;cursor:pointer;font-family:inherit;border:none;transition:all .15s;font-weight:600}
+.btn{background:#f1f5f9;color:#475569;border:1.5px solid #e2e8f0}.btn:hover{background:#e2e8f0}
+.btn-p{background:#818cf8;color:#fff}.btn-p:hover{background:#6366f1}
+.btn-d{background:#fff;color:#ef4444;border:1.5px solid #fca5a5}.btn-d:hover{background:#fef2f2}
+.btn-w{background:#fff;color:#f59e0b;border:1.5px solid #fcd34d}.btn-w:hover{background:#fffbeb}
+.btn-full{width:100%;margin-top:6px}
+.row-btns{display:flex;gap:8px;margin-top:10px}.row-btns button{flex:1}
+/* ─── PILLS ───────────────────────────────────────────── */
+.pill{display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.p-ok{background:#dcfce7;color:#15803d}
+.p-warn{background:#fef9c3;color:#a16207}
+.p-bad{background:#fee2e2;color:#dc2626}
+.p-blue{background:#ede9fe;color:#6d28d9}
+.p-muted{background:#f1f5f9;color:#64748b}
+/* ─── UTILS ───────────────────────────────────────────── */
+.muted{color:#94a3b8;font-size:13px}
+.small{font-size:11px;color:#94a3b8}
+.dot{width:10px;height:10px;border-radius:50%;display:inline-block;flex-shrink:0}
+.fila{display:flex;align-items:center;gap:8px;padding:9px 0;border-bottom:1px solid #f1f5f9}.fila:last-child{border-bottom:none}
+.prog-bar{height:7px;border-radius:4px;background:#f1f5f9;overflow:hidden;margin-top:4px}
+.prog-fill{height:100%;border-radius:4px;transition:width .3s}
+/* ─── TAB BAR ─────────────────────────────────────────── */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid #e2e8f0;display:flex;z-index:50;box-shadow:0 -2px 10px rgba(0,0,0,.06)}
+.tab-btn{flex:1;padding:10px 4px 8px;font-size:10px;color:#94a3b8;background:none;border:none;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-weight:700;transition:all .15s}
+.tab-btn.on{color:#818cf8}
+.tab-btn.on .tab-ico{transform:scale(1.2)}
+.tab-ico{font-size:20px;display:block;transition:transform .15s}
+/* ─── MODAL ───────────────────────────────────────────── */
+.modal-ov{position:fixed;inset:0;background:rgba(15,23,42,.4);z-index:100;display:none;align-items:flex-end;justify-content:center}
+.modal-ov.on{display:flex}
+.modal{background:#fff;border-radius:20px 20px 0 0;padding:20px;width:100%;max-width:520px;max-height:90vh;overflow-y:auto}
+.modal-handle{width:40px;height:4px;background:#e2e8f0;border-radius:2px;margin:0 auto 16px}
+/* ─── AVIS ────────────────────────────────────────────── */
+.avis{position:fixed;top:0;left:0;right:0;z-index:200;padding:12px 16px;font-size:13px;font-weight:700;display:none;text-align:center}
+/* ─── DIES BARRA ──────────────────────────────────────── */
+.dia-tab{padding:6px 12px;border-radius:10px;font-size:12px;cursor:pointer;border:1.5px solid #e2e8f0;background:#fff;color:#64748b;white-space:nowrap;font-weight:600}
+.dia-tab.on{background:#818cf8;color:#fff!important;border-color:#818cf8}
+.dia-tab.avui{border-color:#818cf8;color:#818cf8}
+.dia-tab.on.avui{color:#fff!important}
+.dia-tab.passat{opacity:.4}
+.dies-bar{display:flex;gap:4px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px}
+/* ─── CALENDARI 24H ───────────────────────────────────── */
+.cal-wrap{display:flex;border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden;position:relative;background:#fff}
+.cal-hores{width:32px;flex-shrink:0;background:#f8fafc;position:relative;border-right:1px solid #e2e8f0}
+.cal-col{flex:1;position:relative}
+.cal-h-tick{position:absolute;left:0;right:0;font-size:9px;color:#94a3b8;text-align:right;padding-right:3px;line-height:1;pointer-events:none}
+.cal-linia{position:absolute;left:0;right:0;height:1px;pointer-events:none}
+.cal-linia-h{background:#e2e8f0}.cal-linia-m{background:#f1f5f9}
+.cal-bloc{position:absolute;left:2px;right:2px;border-radius:6px;overflow:hidden;z-index:3;cursor:pointer}
+.cal-bloc-nom{font-size:12px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;padding:3px 6px 1px}
+.cal-bloc-hora{font-size:11px;font-weight:600;opacity:.75;padding:0 6px 2px}
+.cal-now{position:absolute;left:0;right:0;height:2px;background:#ef4444;z-index:5;pointer-events:none}
+.cal-now::before{content:'';position:absolute;left:-3px;top:-3px;width:8px;height:8px;border-radius:50%;background:#ef4444}
+/* ─── CALENDARI SETMANAL ──────────────────────────────── */
+.set-wrap{border:1.5px solid #e2e8f0;border-radius:12px;overflow:hidden;background:#fff}
+.set-header{display:grid;grid-template-columns:40px repeat(7,1fr);background:#f8fafc;border-bottom:1px solid #e2e8f0}
+.set-cap{text-align:center;font-size:11px;font-weight:700;color:#64748b;padding:6px 2px}
+.set-cap.avui{color:#818cf8}
+.set-body{display:grid;grid-template-columns:40px repeat(7,1fr);position:relative}
+.set-hora-col{position:relative}
+.set-hora-tick{position:absolute;right:4px;font-size:9px;color:#94a3b8;line-height:1;transform:translateY(-50%)}
+.set-dia-col{position:relative;border-left:1px solid #f1f5f9}
+.set-linia{position:absolute;left:0;right:0;height:1px;background:#f1f5f9;pointer-events:none}
+.set-linia-h{background:#e2e8f0}
+.set-bloc{position:absolute;left:1px;right:1px;border-radius:4px;overflow:hidden;cursor:pointer;z-index:2}
+.set-bloc-txt{font-size:9px;font-weight:700;padding:1px 3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.set-now{position:absolute;left:0;right:0;height:2px;background:#ef4444;z-index:5;pointer-events:none}
+/* ─── KPIs ────────────────────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:12px}
+.kpi{background:#fff;border:1.5px solid #e2e8f0;border-radius:14px;padding:12px;text-align:center;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.kpi-val{font-size:24px;font-weight:800}
+.kpi-lab{font-size:11px;color:#94a3b8;margin-top:3px;font-weight:600}
+/* ─── SLIDERS ─────────────────────────────────────────── */
+.sl-wrap{margin-bottom:14px;padding-bottom:14px;border-bottom:1px solid #f1f5f9}
+.sl-wrap:last-child{border-bottom:none;margin-bottom:0;padding-bottom:0}
+.sl-row{display:flex;align-items:center;gap:8px;margin-bottom:5px}
+.sl-nom{font-size:13px;font-weight:700;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sl-pct{font-size:13px;font-weight:800;width:36px;text-align:right;flex-shrink:0}
+.sl-lock{background:none;border:none;font-size:15px;cursor:pointer;padding:0;width:22px;flex-shrink:0}
+input[type=range]{width:100%;height:6px;border-radius:3px;outline:none;border:none;cursor:pointer;-webkit-appearance:none;margin:3px 0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;cursor:pointer;border:2px solid #fff;box-shadow:0 1px 4px rgba(0,0,0,.2)}
+input[type=range]:disabled{opacity:.3;cursor:default}
+.sl-hores{display:flex;gap:10px;font-size:11px;color:#64748b;padding-left:22px;margin-top:2px;flex-wrap:wrap;font-weight:600}
+/* ─── EXÀMENS ─────────────────────────────────────────── */
+.exam-row{border:1.5px solid #e2e8f0;border-radius:12px;padding:12px;margin-bottom:8px;cursor:pointer;background:#fff;transition:border-color .15s}
+.exam-row:hover{border-color:#818cf8}
+.exam-row.urgent{border-color:#ef4444;background:#fff5f5}
+.exam-row.proper{border-color:#f59e0b;background:#fffbeb}
+/* ─── PLA ─────────────────────────────────────────────── */
+.pla-grup{margin-bottom:20px}
+.pla-exam-header{border-radius:12px;padding:12px 14px;margin-bottom:8px;color:#fff}
+.pla-bloc{background:#fff;border:1.5px solid #e2e8f0;border-radius:10px;padding:10px 12px;margin-bottom:6px;display:flex;align-items:center;gap:10px}
+.pla-bloc.sprint{border-color:#fca5a5;background:#fff5f5}
+.pla-bloc.estudi{border-left:4px solid}
+.cal-bloc.tipus-estudi{box-shadow:inset 0 0 0 1.5px currentColor}
+.cal-bloc.tipus-treball{border-style:dashed!important}
+.set-bloc.tipus-estudi{box-shadow:inset 0 0 0 1px currentColor}
+.set-bloc.tipus-treball{border-style:dashed!important}
+.cal-watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:30px;font-weight:900;letter-spacing:3px;opacity:.12;transform:rotate(-18deg);pointer-events:none;white-space:nowrap;color:currentColor;z-index:0}
+.set-watermark{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;letter-spacing:1px;opacity:.14;transform:rotate(-18deg);pointer-events:none;white-space:nowrap;color:currentColor;z-index:0}
+.cal-bloc-cont,.set-bloc-cont{position:relative;height:100%;z-index:1}
+
+
+/* ─── V8: blocs generats pel planificador ───────────────── */
+.planner-generated-block{position:relative;overflow:hidden;filter:saturate(.5);}
+.planner-generated-block::after{content:attr(data-watermark);position:absolute;right:8px;bottom:4px;font-size:10px;font-weight:900;letter-spacing:.08em;opacity:.35;pointer-events:none;}
+.planner-generated-study::after{content:'ESTUDI';}
+.planner-generated-work::after{content:'TREBALL';}
+.planner-generated-review::after{content:'REPÀS';}
+
+</style></head>
+<body>
+<div class="avis" id="avis"></div>
+<!-- ══════════════════════════════════════════════════════
+     PANEL: ARA
+══════════════════════════════════════════════════════ -->
+<div class="panel on" id="p-ara">
+<!-- Capçalera -->
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<div style="display:flex;align-items:center;gap:10px">
+<div id="ara-avatar" style="width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,#818cf8,#6366f1);display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0">🎓</div>
+<div>
+<div class="small" id="ara-data"></div>
+<div id="ara-salut" style="font-size:16px;font-weight:800;color:#1e293b">Hola!</div>
+</div>
+</div>
+<div id="ara-pill"></div>
+</div>
+<!-- Banner Pomodoro -->
+<div id="ara-pom-banner" style="display:none;background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:14px;padding:14px;margin-bottom:10px;color:#fff;text-align:center">
+<div style="font-size:22px;margin-bottom:4px">⏰</div>
+<div id="ara-pom-titol" style="font-weight:800;font-size:16px;margin-bottom:4px"></div>
+<div id="ara-pom-cos" style="font-size:13px;opacity:.9;margin-bottom:12px"></div>
+<button id="btn-pom-ok" style="background:rgba(255,255,255,.25);color:#fff;border:1.5px solid rgba(255,255,255,.5);border-radius:10px;font-weight:700;padding:8px 20px;cursor:pointer;font-size:14px"></button>
+</div>
+<!-- Bloc actiu -->
+<div id="ara-bloc-card" style="background:linear-gradient(135deg,#818cf8,#6366f1);border-radius:16px;padding:16px;margin-bottom:0;color:#fff;position:relative;overflow:hidden">
+<div id="ara-marca-aigua" style="display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%) rotate(-20deg);font-size:48px;font-weight:900;opacity:.08;pointer-events:none;white-space:nowrap;color:#fff;letter-spacing:4px"></div>
+<button id="btn-repos" onclick="activarModeRepos()" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.2);border:none;color:#fff;border-radius:8px;padding:4px 8px;font-size:10px;cursor:pointer;font-weight:700">🌙 Repòs</button>
+<div style="font-size:12px;opacity:.8;margin-bottom:4px">Ara mateix</div>
+<div id="ara-nom" style="font-size:22px;font-weight:800;margin-bottom:2px">—</div>
+<div id="ara-info" style="font-size:12px;opacity:.8"></div>
+<div style="margin-top:12px">
+<div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px">
+<span style="opacity:.8">Temps portat</span>
+<span id="ara-pct" style="opacity:.8">0%</span>
+</div>
+<div style="height:6px;border-radius:3px;background:rgba(255,255,255,.3);overflow:hidden">
+<div id="ara-bar" style="height:100%;border-radius:3px;background:#fff;transition:width .3s;width:0%"></div>
+</div>
+<div style="display:flex;justify-content:space-between;margin-top:8px;align-items:flex-end">
+<span id="ara-crono" style="font-size:32px;font-weight:800;font-variant-numeric:tabular-nums">--:--</span>
+<div style="text-align:right">
+<div style="opacity:.7;font-size:12px">queden</div>
+<div id="ara-queda" style="font-size:18px;font-weight:700;opacity:.9">—</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Selector canvi activitat (fora del bloc per evitar overflow:hidden) -->
+<div id="ara-canviar-wrap" style="background:linear-gradient(135deg,#818cf8,#6366f1);border-radius:0 0 16px 16px;padding:0 16px 14px;margin-bottom:10px;color:#fff">
+<div style="font-size:12px;opacity:.8;margin-bottom:6px">Canviar activitat:</div>
+<div id="ara-sel-wrap" style="position:relative">
+<div id="ara-sel-btn" style="background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);color:#fff;border-radius:8px;padding:8px 12px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:13px;font-weight:600">
+<span id="ara-sel-txt">Canviar a...</span>
+<span style="font-size:10px;opacity:.7">▼</span>
+</div>
+<div id="ara-sel-drop" style="display:none;position:absolute;top:100%;left:0;right:0;background:#fff;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.18);z-index:100;max-height:220px;overflow-y:auto;margin-top:4px"></div>
+</div>
+</div>
+<div class="card" style="padding:10px 14px;margin-bottom:10px">
+<div class="small">Següent</div>
+<div id="ara-seg" style="font-weight:700;color:#334155">—</div>
+<div class="small" id="ara-seg-info"></div>
+</div>
+<div class="kpi-grid" id="ara-kpis"></div>
+<div class="card"><h3 style="margin-bottom:10px">Com va el dia? 📊</h3><div id="ara-barres"></div></div>
+</div>
+<!-- ══════════════════════════════════════════════════════
+     PANEL: AGENDA
+══════════════════════════════════════════════════════ -->
+<div class="panel" id="p-agenda">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+<h2 style="margin:0">Agenda 📅</h2>
+<div style="display:flex;gap:5px">
+<button class="dia-tab on" id="btn-vista-dia" style="font-size:11px">Dia</button>
+<button class="dia-tab" id="btn-vista-set" style="font-size:11px">Setmana</button>
+</div>
+</div>
+<div id="v-set">
+<div style="display:flex;align-items:center;gap:6px;margin-bottom:4px">
+  <div class="dies-bar" id="set-nav" style="flex:1;margin-bottom:0"></div>
+  <button class="btn" id="btn-set-avui" style="font-size:11px;padding:6px 10px;flex-shrink:0">Avui</button>
+</div>
+<div id="set-cos"></div>
+</div>
+<div id="v-dia" style="display:none">
+<div style="display:flex;align-items:center;gap:4px;margin-bottom:6px">
+  <button class="btn" id="btn-set-prev" style="font-size:16px;padding:6px 8px;flex-shrink:0">‹</button>
+  <div id="dia-nav" style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px;flex:1;min-width:0"></div>
+  <button class="btn" id="btn-set-next" style="font-size:16px;padding:6px 8px;flex-shrink:0">›</button>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<span id="dia-titol" style="font-weight:700;font-size:13px;color:#334155"></span>
+<div style="display:flex;gap:6px;flex-shrink:0">
+<button class="btn" id="btn-avui" style="font-size:11px">Avui</button>
+<button class="btn-p" id="btn-nova-franja" style="font-size:11px">+ Franja</button>
+</div>
+</div>
+
+<div class="cal-wrap" id="cal-dia" style="height:1920px">
+<div class="cal-hores" id="cal-dia-h" style="height:1920px"></div>
+<div class="cal-col" id="cal-dia-c" style="height:1920px"></div>
+</div>
+</div>
+</div>
+<!-- ══════════════════════════════════════════════════════
+     PANEL: EXÀMENS
+══════════════════════════════════════════════════════ -->
+<div class="panel" id="p-aval">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+<h2 style="margin:0">Exàmens 📝</h2>
+<div id="aval-pill"></div>
+</div>
+<div class="card" id="aval-off">
+<h3>Activar mode estudi</h3>
+<p class="muted" style="margin-bottom:12px">Afegeix els teus exàmens i l'app et crearà un pla d'estudi personalitzat! 🎯</p>
+<button class="btn-p btn-full" id="btn-on-aval">Activar ✨</button>
+</div>
+<div id="aval-on" style="display:none">
+<div id="aval-p1">
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+<h3 style="margin:0">Els meus exàmens</h3>
+<button class="btn-p" id="btn-nou-exam" style="font-size:11px">+ Afegir</button>
+</div>
+<div id="exam-llista"></div>
+<button class="btn-p btn-full" id="btn-a-dist" style="margin-top:8px">Repartir temps d'estudi →</button>
+</div>
+</div>
+<div id="aval-p2" style="display:none">
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+<h3 style="margin:0">Repartir el temps ⏱</h3>
+<button class="btn" id="btn-a-p1" style="font-size:11px">← Tornar</button>
+</div>
+<div class="small" style="margin-bottom:12px">Mou les barres per decidir quant temps dediques a cada assignatura. 🔒 fixa una.</div>
+<div style="background:#f8fafc;border-radius:10px;padding:10px;margin-bottom:12px;font-size:12px">
+<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span class="muted">Temps total disponible</span><span id="d-disp" style="font-weight:700;color:#6366f1"></span></div>
+<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span class="muted">Sprint total</span><span id="d-sprint" style="font-weight:700;color:#ef4444"></span></div>
+<div style="display:flex;justify-content:space-between"><span class="muted">Estudi net</span><span id="d-estudi" style="font-weight:700;color:#22c55e"></span></div>
+</div>
+<div id="d-sliders"></div>
+<div style="margin-top:12px;padding-top:10px;border-top:1px solid #f1f5f9;font-size:12px">
+<div style="display:flex;justify-content:space-between;margin-bottom:4px"><span class="muted">Total</span><span id="d-total-pct" style="font-weight:800">100%</span></div>
+<div class="prog-bar"><div class="prog-fill" id="d-total-bar" style="width:100%;background:#22c55e"></div></div>
+</div>
+<button class="btn-p btn-full" id="btn-calcular" style="margin-top:14px">🚀 Crear pla d'estudi!</button>
+</div>
+</div>
+<div id="aval-resum" style="display:none">
+<div id="pla-asig" style="margin-bottom:10px"></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<span style="font-size:12px;color:#64748b;font-weight:600">Blocs d'estudi generats</span>
+<button class="btn" id="btn-reajustar" style="font-size:11px">✏️ Canviar distribució</button>
+</div>
+<div id="pla-blocs"></div>
+</div>
+<button class="btn-d btn-full" id="btn-off-aval" style="margin-top:4px">Desactivar mode estudi</button>
+</div>
+</div>
+<!-- ══════════════════════════════════════════════════════
+     PANEL: CONFIG
+══════════════════════════════════════════════════════ -->
+<div class="panel" id="p-cfg">
+<h2 style="margin-bottom:12px">Configuració ⚙️</h2>
+<div class="card">
+<h3>El meu perfil 👤</h3>
+<label>El teu nom</label><input id="cfg-nom" placeholder="Ex: Arlet" type="text"/>
+<label>El teu avatar</label>
+<div id="cfg-avatar-grid" style="display:flex;gap:8px;flex-wrap:wrap;margin:6px 0 10px"></div>
+<input id="cfg-avatar-custom" placeholder="O escriu el teu emoji..." style="margin-bottom:0" type="text"/>
+<button class="btn-p btn-full" id="btn-desar-perfil">Desar perfil</button>
+</div>
+<div class="card">
+<h3>Compartir l'app 🔗</h3>
+<div class="small" style="margin-bottom:10px">Quan tinguis la URL de l'app, enganxa-la aquí per generar el QR.</div>
+<label>URL de l'app</label>
+<input id="cfg-app-url" placeholder="https://..." type="url"/>
+<button class="btn-p btn-full" id="btn-desar-url" style="margin-bottom:10px">Generar QR</button>
+<div id="cfg-qr-wrap" style="display:none;text-align:center">
+<div id="cfg-qr" style="display:inline-block;padding:12px;background:#fff;border-radius:12px;border:1.5px solid #e2e8f0"></div>
+<div class="small" style="margin-top:8px">Escaneja per instal·lar l'app</div>
+<button class="btn btn-full" id="btn-compartir" style="margin-top:8px">📤 Compartir URL</button>
+</div>
+</div>
+<div class="card">
+<h3>Curs acadèmic</h3>
+<label>Inici del curs</label><input id="cfg-ini" type="date"/>
+<label>Fi del curs</label><input id="cfg-fi" type="date"/>
+<button class="btn-p btn-full" id="btn-desar-curs">Desar</button>
+</div>
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+<h3 style="margin:0">Vacances 🏖</h3>
+<button class="btn-p" id="btn-nova-vacanca" style="font-size:11px">+ Afegir</button>
+</div>
+<div class="small" style="margin-bottom:8px">Durant les vacances no hi ha cole ni assignatures.</div>
+<div id="cfg-vacances"></div>
+</div>
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+<h3 style="margin:0">Assignatures</h3>
+<button class="btn-p" id="btn-nova-asig" style="font-size:11px">+ Nova</button>
+</div>
+<div id="cfg-asig"></div>
+</div>
+<div class="card">
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+<h3 style="margin:0">Activitats</h3>
+<button class="btn-p" id="btn-nova-act" style="font-size:11px">+ Nova</button>
+</div>
+<div id="cfg-acts"></div>
+</div>
+<div class="card">
+<h3>Horari setmanal <span class="small">(Dl–Dg)</span></h3>
+<div class="dies-bar" id="patro-nav"></div>
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+<span id="patro-dia-nom" style="font-weight:700;font-size:13px;color:#334155"></span>
+<div style="display:flex;gap:5px">
+<button class="btn" id="btn-dup-patro" style="font-size:11px">⧉ Copiar</button>
+<button class="btn-p" id="btn-nova-franja-patro" style="font-size:11px">+ Franja</button>
+</div>
+</div>
+<div class="cal-wrap" id="cal-patro" style="height:1920px">
+<div class="cal-hores" id="cal-patro-h" style="height:1920px"></div>
+<div class="cal-col" id="cal-patro-c" style="height:1920px"></div>
+</div>
+</div>
+<div class="card">
+<h3>Preferències</h3>
+<label>Nom dels espais lliures</label><input id="cfg-nom-blanc" type="text"/>
+<label>Sprint per defecte (hores)</label><input id="cfg-sprint" max="5" min="0.5" step="0.5" type="number" value="1.5"/>
+<label>Temps mínim per sessió d'estudi (minuts)</label><input id="cfg-min-sessio" max="240" min="15" type="number" value="90"/>
+<label>Temps màxim d'estudi seguit (minuts)</label><input id="cfg-pomodoro" max="120" min="10" type="number" value="45"/>
+<label>Temps de descans (minuts)</label><input id="cfg-descans" max="30" min="5" type="number" value="10"/>
+<button class="btn-p btn-full" id="btn-desar-params">Desar preferències</button>
+</div>
+<div class="card">
+<h3>Exportar / Importar dades 🔧</h3>
+<button class="btn btn-full" id="btn-export-json">📥 Descarregar dades (JSON)</button>
+<button class="btn btn-full" id="btn-import-json" style="margin-top:8px">📤 Carregar dades (JSON)</button>
+<input type="file" id="inp-import-json" accept=".json" style="display:none">
+</div>
+<div class="card" style="border-color:#fca5a5">
+<h3 style="color:#ef4444">Zona de perill</h3>
+<button class="btn-d btn-full" id="btn-reset">🗑 Esborrar tot i començar de nou</button>
+</div>
+</div>
+<!-- ══════════════════════════════════════════════════════
+     TAB BAR
+══════════════════════════════════════════════════════ -->
+<nav class="tab-bar">
+<button class="tab-btn on" id="tb-ara"><span class="tab-ico">🕐</span>Ara</button>
+<button class="tab-btn" id="tb-agenda"><span class="tab-ico">📅</span>Agenda</button>
+<button class="tab-btn" id="tb-aval"><span class="tab-ico">📝</span>Exàmens</button>
+<button class="tab-btn" id="tb-cfg"><span class="tab-ico">⚙️</span>Config</button>
+</nav>
+<!-- Mode repòs overlay -->
+<div id="repos-overlay" style="display:none;position:fixed;inset:0;z-index:300;flex-direction:column;align-items:center;justify-content:center;color:#fff;text-align:center;padding:32px">
+<div id="repos-nom" style="font-size:32px;font-weight:900;margin-bottom:24px;letter-spacing:-1px"></div>
+<div id="repos-crono" style="font-size:72px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1;margin-bottom:12px"></div>
+<div id="repos-queda" style="font-size:18px;opacity:.75;font-weight:600;margin-bottom:48px"></div>
+<button onclick="desactivarModeRepos()" style="background:rgba(255,255,255,.2);border:1.5px solid rgba(255,255,255,.4);color:#fff;border-radius:14px;padding:12px 28px;font-size:15px;font-weight:700;cursor:pointer">✕ Sortir del mode repòs</button>
+</div>
+<!-- Modal -->
+<div class="modal-ov" id="modal-ov">
+<div class="modal"><div class="modal-handle"></div><div id="modal-cos"></div></div>
+</div>
+
+<script>
+'use strict';
+
+// planificador-v9/storage.js
+// Capa de compatibilitat: manté l'app existent però prepara l'estat per al model v9.
+
+(function(){
+  var KEY = 'planV8';
+  var LEGACY_KEYS = ['planV7', 'planV6'];
+
+  function uid(prefix){
+    return (prefix || 'v8') + '_' + Math.random().toString(36).slice(2, 9) + '_' + Date.now();
+  }
+
+  function mapKindFromActivity(activity){
+    var text = ((activity && (activity.nom || activity.name)) || '').toLowerCase();
+    if (text.indexOf('estudi') >= 0) return 'study';
+    if (text.indexOf('treball') >= 0) return 'work';
+    if (text.indexOf('repàs') >= 0 || text.indexOf('repas') >= 0) return 'review';
+    if (text.indexOf('cole') >= 0 || text.indexOf('classe') >= 0) return 'school';
+    return 'normal';
+  }
+
+  function ensureArray(state, key){
+    if (!Array.isArray(state[key])) state[key] = [];
+  }
+
+  function ensureV8State(state){
+    if (!state || typeof state !== 'object') return state;
+
+    ensureArray(state, 'activitats');
+    ensureArray(state, 'assignatures');
+    ensureArray(state, 'projects');
+    ensureArray(state, 'projectTasks');
+    ensureArray(state, 'calendarBlocks');
+    ensureArray(state, 'executions');
+    ensureArray(state, 'availabilityBlocks');
+    ensureArray(state, 'plans');
+    ensureArray(state, 'deviations');
+
+    state.meta = state.meta || {};
+    state.meta.version = 'v9';
+    state.meta.updatedAt = new Date().toISOString();
+
+    state.activitats.forEach(function(a){
+      if (!a) return;
+      if (a.name == null && a.nom != null) a.name = a.nom;
+      if (a.nom == null && a.name != null) a.nom = a.name;
+      if (a.locked == null) a.locked = !!a.fixe;
+      if (a.fixe == null) a.fixe = !!a.locked;
+      if (!a.kind) a.kind = mapKindFromActivity(a);
+      if (a.subjectId === undefined) a.subjectId = null;
+      if (a.projectId === undefined) a.projectId = null;
+      if (a.taskId === undefined) a.taskId = null;
+      if (a.automatic === undefined) a.automatic = false;
+      if (a.reusable === undefined) a.reusable = !a.automatic;
+      if (a.active === undefined) a.active = true;
+    });
+
+    state.assignatures.forEach(function(s){
+      if (!s) return;
+      if (s.name == null && s.nom != null) s.name = s.nom;
+      if (s.nom == null && s.name != null) s.nom = s.name;
+      if (!s.schoolSchedule) s.schoolSchedule = s.horari || {};
+      if (!s.horari) s.horari = s.schoolSchedule || {};
+    });
+
+    state.projects.forEach(function(p){
+      if (!p) return;
+      if (!p.status) p.status = 'active';
+      if (p.completedAt === undefined) p.completedAt = null;
+    });
+    state.projectTasks.forEach(function(t){
+      if (!t) return;
+      if (t.plannedMinutes == null) t.plannedMinutes = 0;
+      if (t.realMinutes == null) t.realMinutes = 0;
+      if (t.pendingMinutes == null) t.pendingMinutes = Math.max(0, (t.targetMinutes||0) - (t.realMinutes||0));
+      if (t.lockedMinutes == null) t.lockedMinutes = true;
+    });
+    state.availabilityBlocks.forEach(function(b){
+      if (!b) return;
+      if (b.usable == null) b.usable = b.origin !== 'manual_release';
+      if (b.minutes == null && b.start && b.end){
+        var p1 = String(b.start).split(':').map(Number), p2 = String(b.end).split(':').map(Number);
+        b.minutes = Math.max(0, (p2[0]*60+(p2[1]||0)) - (p1[0]*60+(p1[1]||0)));
+      }
+      if (b.releasedBy === undefined) b.releasedBy = null;
+      if (b.reservedForProjectId === undefined) b.reservedForProjectId = null;
+    });
+    if (!state.config) state.config = {};
+    if (state.config.diagnosticPct == null) state.config.diagnosticPct = 40;
+    if (state.config.defaultStudyHours == null) state.config.defaultStudyHours = 3;
+
+    return state;
+  }
+
+  function load(){
+    var raw = null;
+    try {
+      raw = localStorage.getItem(KEY);
+      if (!raw) {
+        for (var i = 0; i < LEGACY_KEYS.length && !raw; i++) raw = localStorage.getItem(LEGACY_KEYS[i]);
+      }
+      return raw ? ensureV8State(JSON.parse(raw)) : null;
+    } catch(e){
+      console.warn('No s’ha pogut carregar planV8', e);
+      return null;
+    }
+  }
+
+  function save(state){
+    try {
+      ensureV8State(state);
+      localStorage.setItem(KEY, JSON.stringify(state));
+      return true;
+    } catch(e){
+      console.warn('No s’ha pogut guardar planV8', e);
+      return false;
+    }
+  }
+
+  function createGeneratedActivity(state, subjectId, projectId, kind, taskId){
+    ensureV8State(state);
+    var subject = state.assignatures.find(function(s){ return s.id === subjectId; });
+    var labels = { study:'Estudi', work:'Treball', review:'Sprint' };
+    var subjectName = subject ? (subject.nom || subject.name) : 'Assignatura';
+    var project = (state.projects || []).find(function(p){ return p.id === projectId; });
+    var projectTitle = project ? (project.title || 'Projecte') : 'Projecte';
+    state.activitats.forEach(function(a){
+      if (a.automatic && a.subjectId === subjectId && a.projectId === projectId && a.kind === kind && a.taskId !== taskId && a.active !== false) a.active = false;
+    });
+    var existing = state.activitats.find(function(a){
+      return a.automatic && a.subjectId === subjectId && a.projectId === projectId && a.taskId === taskId && a.kind === kind && a.active !== false;
+    });
+    if (existing) return existing;
+    var activity = {
+      id: uid('act_auto'),
+      nom: subjectName + ' · ' + projectTitle + ' · ' + (labels[kind] || 'Activitat'),
+      name: subjectName + ' · ' + projectTitle + ' · ' + (labels[kind] || 'Activitat'),
+      color: subject ? subject.color : '#818cf8',
+      fixe: false,
+      locked: false,
+      kind: kind,
+      subjectId: subjectId || null,
+      projectId: projectId || null,
+      taskId: taskId || null,
+      familiaId: 'f-estudi',
+      automatic: true,
+      reusable: false,
+      active: true
+    };
+    state.activitats.push(activity);
+    return activity;
+  }
+
+  window.PlanV8Storage = {
+    KEY: KEY,
+    load: load,
+    save: save,
+    ensureV8State: ensureV8State,
+    createGeneratedActivity: createGeneratedActivity
+  };
+})();
+
+</script><script>
+'use strict';
+
+// planificador-v9/planner.js
+// Motor independent de disponibilitat, demanda explícita, versions de pla i desviacions.
+
+(function(){
+  function hm(value){
+    if (!value) return 0;
+    var p = String(value).split(':').map(Number);
+    return (p[0] || 0) * 60 + (p[1] || 0);
+  }
+  function mh(minutes){
+    minutes = Math.max(0, Math.min(1440, Math.round(minutes)));
+    return String(Math.floor(minutes / 60)).padStart(2, '0') + ':' + String(minutes % 60).padStart(2, '0');
+  }
+  function minutesBetween(start, end){ return Math.max(0, hm(end) - hm(start)); }
+  function sortBlocks(blocks){
+    return (blocks || []).slice().sort(function(a, b){ return hm(a.start || a.ini) - hm(b.start || b.ini); });
+  }
+  function getStart(block){ return block.start || block.ini; }
+  function getEnd(block){ return block.end || block.fi; }
+  function getLocked(block, activities){
+    if (block.locked != null) return !!block.locked;
+    var id = block.activityId || block.activitatId;
+    var act = (activities || []).find(function(a){ return a.id === id; });
+    return !!(act && (act.locked || act.fixe));
+  }
+
+  function overlaps(aStart, aEnd, bStart, bEnd){ return hm(aStart) < hm(bEnd) && hm(aEnd) > hm(bStart); }
+  function blockedByManualRelease(date, start, end, availabilityBlocks){
+    return (availabilityBlocks || []).some(function(b){
+      return b.date === date && b.origin === 'manual_release' && b.usable !== true && overlaps(start, end, b.start, b.end);
+    });
+  }
+
+  function findFreeGaps(blocks, dayStart, dayEnd, date, availabilityBlocks){
+    dayStart = dayStart || '07:00';
+    dayEnd = dayEnd || '22:00';
+    var cursor = hm(dayStart);
+    var endDay = hm(dayEnd);
+    var gaps = [];
+    sortBlocks(blocks).forEach(function(block){
+      var start = hm(getStart(block));
+      var end = hm(getEnd(block));
+      if (start > cursor) {
+        var gap = { date:date || null, start: mh(cursor), end: mh(start), minutes: start - cursor, origin:'empty_original', usable:true };
+        if (!blockedByManualRelease(date, gap.start, gap.end, availabilityBlocks)) gaps.push(gap);
+      }
+      cursor = Math.max(cursor, end);
+    });
+    if (cursor < endDay) {
+      var last = { date:date || null, start: mh(cursor), end: mh(endDay), minutes: endDay - cursor, origin:'empty_original', usable:true };
+      if (!blockedByManualRelease(date, last.start, last.end, availabilityBlocks)) gaps.push(last);
+    }
+    return gaps.filter(function(g){ return g.minutes > 0 && g.usable === true; });
+  }
+
+  function findUnlockedSacrificableBlocks(blocks, activities){
+    return sortBlocks(blocks).filter(function(block){
+      return !getLocked(block, activities) && block.origin !== 'planner' && block.sacrificed !== true;
+    }).map(function(block){
+      return Object.assign({}, block, { minutes: minutesBetween(getStart(block), getEnd(block)) });
+    });
+  }
+
+  function calculateUsableAvailability(blocks, activities, dayStart, dayEnd, date, availabilityBlocks){
+    var gaps = findFreeGaps(blocks, dayStart, dayEnd, date, availabilityBlocks);
+    var unlocked = findUnlockedSacrificableBlocks(blocks, activities);
+    var freeMinutes = gaps.reduce(function(t, g){ return t + g.minutes; }, 0);
+    var unlockedMinutes = unlocked.reduce(function(t, b){ return t + b.minutes; }, 0);
+    return {
+      freeGapsMinutes: freeMinutes,
+      unlockedBlocksMinutes: unlockedMinutes,
+      totalUsableMinutes: freeMinutes + unlockedMinutes,
+      requiresSacrifice: false,
+      gaps: gaps,
+      sacrificableBlocks: unlocked
+    };
+  }
+
+  function validateAssignedMinutes(targetMinutes, availability){
+    targetMinutes = Number(targetMinutes || 0);
+    if (targetMinutes <= availability.freeGapsMinutes) {
+      return { ok: true, requiresSacrifice: false, missingMinutes: 0 };
+    }
+    if (targetMinutes <= availability.totalUsableMinutes) {
+      return { ok: true, requiresSacrifice: true, missingMinutes: 0 };
+    }
+    return { ok: false, requiresSacrifice: true, missingMinutes: targetMinutes - availability.totalUsableMinutes };
+  }
+
+  function validateExplicitDemand(tasks, availability){
+    var targetMinutes = (tasks || []).reduce(function(t, task){ return t + Math.max(0, Number(task.targetMinutes || 0)); }, 0);
+    var validation = validateAssignedMinutes(targetMinutes, availability);
+    validation.targetMinutes = targetMinutes;
+    validation.surplusMinutes = Math.max(0, (availability.freeGapsMinutes || 0) - targetMinutes);
+    return validation;
+  }
+
+  function planIntoFreeGapsFirst(targetMinutes, gaps, makeBlock){
+    var remaining = Number(targetMinutes || 0);
+    var planned = [];
+    (gaps || []).forEach(function(gap){
+      if (remaining <= 0 || gap.usable === false) return;
+      var used = Math.min(remaining, gap.minutes);
+      planned.push(makeBlock(gap.start, mh(hm(gap.start) + used), used, gap));
+      remaining -= used;
+    });
+    return { planned: planned, remainingMinutes: remaining };
+  }
+
+  function sacrificeWholeUnlockedBlock(block){
+    return Object.assign({}, block, { sacrificed: true, status: 'cancelled' });
+  }
+
+  function createPlanVersion(existingPlans, previousPlanId, reason){
+    return {
+      id: 'plan_' + Math.random().toString(36).slice(2, 9) + '_' + Date.now(),
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      discardedAt: null,
+      discardReason: null,
+      previousPlanId: previousPlanId || null,
+      reason: reason || 'created'
+    };
+  }
+
+  function computeDeviations(tasks, plannedBlocks, executions){
+    return (tasks || []).map(function(task){
+      var planned = (plannedBlocks || []).filter(function(b){ return b.taskId === task.id && b.status !== 'cancelled' && b.status !== 'replaced'; })
+        .reduce(function(t, b){ return t + minutesBetween(b.start || b.ini, b.end || b.fi); }, 0);
+      var real = (executions || []).filter(function(e){ return e.taskId === task.id; })
+        .reduce(function(t, e){ return t + (e.realMinutes || minutesBetween(e.realStart, e.realEnd)); }, 0);
+      return {
+        projectId: task.projectId,
+        subjectId: task.subjectId,
+        taskId: task.id,
+        targetMinutes: task.targetMinutes || 0,
+        plannedMinutes: planned,
+        realMinutes: real,
+        pendingMinutes: Math.max(0, (task.targetMinutes || 0) - real),
+        deviationMinutes: real - planned,
+        deficitMinutes: Math.max(0, (task.targetMinutes || 0) - planned - real),
+        completionPct: task.targetMinutes ? Math.round(real / task.targetMinutes * 100) : 0
+      };
+    });
+  }
+
+  window.PlanV8Planner = {
+    hm: hm,
+    mh: mh,
+    minutesBetween: minutesBetween,
+    findFreeGaps: findFreeGaps,
+    findUnlockedSacrificableBlocks: findUnlockedSacrificableBlocks,
+    calculateUsableAvailability: calculateUsableAvailability,
+    validateAssignedMinutes: validateAssignedMinutes,
+    validateExplicitDemand: validateExplicitDemand,
+    planIntoFreeGapsFirst: planIntoFreeGapsFirst,
+    sacrificeWholeUnlockedBlock: sacrificeWholeUnlockedBlock,
+    createPlanVersion: createPlanVersion,
+    computeDeviations: computeDeviations
+  };
+})();
+
+</script><script>
+'use strict';
+
+// planificador-v8/render.js
+// Helpers visuals per diferenciar estudi / treball / repàs.
+
+(function(){
+  function kindLabel(kind){
+    return ({ study:'ESTUDI', work:'TREBALL', review:'REPÀS' })[kind] || '';
+  }
+
+  function isGeneratedLearningActivity(activity){
+    return !!activity && ['study', 'work', 'review'].indexOf(activity.kind) >= 0;
+  }
+
+  function blockVisual(activity){
+    if (!activity) return { className:'', watermark:'', opacity:1 };
+    if (!isGeneratedLearningActivity(activity)) return { className:'', watermark:'', opacity:1 };
+    return {
+      className: 'planner-generated-block planner-generated-' + activity.kind,
+      watermark: kindLabel(activity.kind),
+      opacity: 0.5
+    };
+  }
+
+  window.PlanV8Render = {
+    kindLabel: kindLabel,
+    isGeneratedLearningActivity: isGeneratedLearningActivity,
+    blockVisual: blockVisual
+  };
+})();
+
+</script><script>
+'use strict';
+
+// ═══════════════════════════════════════════════════════════
+// UTILS
+// ═══════════════════════════════════════════════════════════
+var ge = function(id){ return document.getElementById(id); };
+function uid(){ return 'x' + Math.random().toString(36).slice(2,8) + '_' + Date.now(); }
+function hm(s){ if(!s) return 0; var p = s.split(':').map(Number); return p[0]*60 + (p[1]||0); }
+function mh(m){ m = ((m%1440)+1440)%1440; return String(Math.floor(m/60)).padStart(2,'0') + ':' + String(m%60).padStart(2,'0'); }
+function avuiStr(){ return new Date().toISOString().split('T')[0]; }
+function araMin(){ var n = new Date(); return n.getHours()*60 + n.getMinutes(); }
+function durMin(a, b){ var d = hm(b) - hm(a); return d > 0 ? d : 0; }
+function fmtH(m){ m = Math.round(m); var h = Math.floor(m/60), mm = m%60; return h&&mm ? h+'h '+mm+'m' : h ? h+'h' : mm ? mm+'m' : '0m'; }
+function addDies(s, n){ var d = new Date(s+'T12:00'); d.setDate(d.getDate()+n); return d.toISOString().split('T')[0]; }
+function diasEntre(a, b){ return Math.ceil((new Date(b+'T00:00') - new Date(a+'T00:00')) / 86400000); }
+function diaEU(s){ var d = new Date(s+'T12:00').getDay(); return d === 0 ? 6 : d-1; }
+
+var DIES  = ['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+var DIES_C = ['Dl','Dm','Dc','Dj','Dv','Ds','Dg'];
+var ID_BLANC = 'act-blanc';
+var NOM_BLANC_DEF = '☁️ Temps lliure';
+
+// ═══════════════════════════════════════════════════════════
+// ESTAT PER DEFECTE
+// ═══════════════════════════════════════════════════════════
+function defState(){
+  return {
+    config: {
+      cursIni:'', cursFi:'', sprintHores:1.5, nomBlanc:NOM_BLANC_DEF,
+      minSessio:90, pomodoroMin:45, descansMin:10, diagnosticPct:40, faseDiagnosticPct:40,
+      nomAlumna:'', avatarEmoji:'🎓', appUrl:''
+    },
+    modeAval: false,
+    activitats: [
+      {id:'act-cole',   nom:'Cole 🏫',         color:'#6366f1', fixe:true,  familiaId:'f-lect'},
+      {id:'act-dinar',  nom:'Dinar 🍽',        color:'#f59e0b', fixe:true,  familiaId:'f-personal'},
+      {id:'act-sopar',  nom:'Sopar 🍽',        color:'#f59e0b', fixe:true,  familiaId:'f-personal'},
+      {id:'act-dormir', nom:'Dormir 😴',       color:'#94a3b8', fixe:true,  familiaId:'f-descans'},
+      {id:'act-estudi', nom:'Estudi 📚',       color:'#22c55e', fixe:false, familiaId:'f-estudi'},
+      {id:'act-lliure', nom:'Temps lliure ✨', color:'#ec4899', fixe:false, familiaId:'f-personal'},
+      {id:ID_BLANC,     nom:NOM_BLANC_DEF,     color:'#cbd5e1', fixe:false, familiaId:'f-descans'}
+    ],
+    assignatures: [
+      {id:'s1', nom:'Matemàtiques', color:'#6366f1', horari:{}},
+      {id:'s2', nom:'Llengua',      color:'#ec4899', horari:{}},
+      {id:'s3', nom:'Ciències',     color:'#22c55e', horari:{}},
+      {id:'s4', nom:'Història',     color:'#f59e0b', horari:{}}
+    ],
+    patro: {
+      0:[{id:'p1a',activitatId:'act-dormir',ini:'00:00',fi:'07:30'},{id:'p1b',activitatId:'act-cole',ini:'08:00',fi:'14:00'},{id:'p1c',activitatId:'act-dinar',ini:'14:00',fi:'15:00'},{id:'p1d',activitatId:'act-estudi',ini:'16:00',fi:'17:30'},{id:'p1e',activitatId:'act-sopar',ini:'20:30',fi:'21:30'},{id:'p1f',activitatId:'act-dormir',ini:'22:30',fi:'23:59'}],
+      1:[{id:'p2a',activitatId:'act-dormir',ini:'00:00',fi:'07:30'},{id:'p2b',activitatId:'act-cole',ini:'08:00',fi:'14:00'},{id:'p2c',activitatId:'act-dinar',ini:'14:00',fi:'15:00'},{id:'p2d',activitatId:'act-estudi',ini:'19:30',fi:'21:00'},{id:'p2e',activitatId:'act-dormir',ini:'22:30',fi:'23:59'}],
+      2:[{id:'p3a',activitatId:'act-dormir',ini:'00:00',fi:'07:30'},{id:'p3b',activitatId:'act-cole',ini:'08:00',fi:'14:00'},{id:'p3c',activitatId:'act-dinar',ini:'14:00',fi:'15:00'},{id:'p3d',activitatId:'act-estudi',ini:'16:00',fi:'18:00'},{id:'p3e',activitatId:'act-dormir',ini:'22:30',fi:'23:59'}],
+      3:[{id:'p4a',activitatId:'act-dormir',ini:'00:00',fi:'07:30'},{id:'p4b',activitatId:'act-cole',ini:'08:00',fi:'14:00'},{id:'p4c',activitatId:'act-dinar',ini:'14:00',fi:'15:00'},{id:'p4d',activitatId:'act-estudi',ini:'19:30',fi:'21:00'},{id:'p4e',activitatId:'act-dormir',ini:'22:30',fi:'23:59'}],
+      4:[{id:'p5a',activitatId:'act-dormir',ini:'00:00',fi:'07:30'},{id:'p5b',activitatId:'act-cole',ini:'08:00',fi:'13:00'},{id:'p5c',activitatId:'act-dinar',ini:'13:00',fi:'14:00'},{id:'p5d',activitatId:'act-estudi',ini:'15:00',fi:'16:30'},{id:'p5e',activitatId:'act-lliure',ini:'16:30',fi:'22:30'},{id:'p5f',activitatId:'act-dormir',ini:'22:30',fi:'23:59'}],
+      5:[{id:'p6a',activitatId:'act-dormir',ini:'00:00',fi:'09:00'},{id:'p6b',activitatId:'act-lliure',ini:'09:00',fi:'22:30'},{id:'p6c',activitatId:'act-dormir',ini:'22:30',fi:'23:59'}],
+      6:[{id:'p7a',activitatId:'act-dormir',ini:'00:00',fi:'09:00'},{id:'p7b',activitatId:'act-lliure',ini:'09:00',fi:'22:30'},{id:'p7c',activitatId:'act-dormir',ini:'22:30',fi:'23:59'}]
+    },
+    vacances: [],
+    examens: [],
+    pla: [],
+    diesMod: {},
+    registre: {}
+  };
+}
+
+// ═══════════════════════════════════════════════════════════
+// CÀRREGA I MIGRACIÓ
+// ═══════════════════════════════════════════════════════════
+var S = defState();
+try {
+  var _sv = localStorage.getItem('planV8') || localStorage.getItem('planV7') || localStorage.getItem('planV6');
+  if (_sv) S = Object.assign(defState(), JSON.parse(_sv));
+} catch(e){}
+
+function migrar(){
+  var def = defState();
+  // Assegurar activitats per defecte
+  def.activitats.forEach(function(a){
+    var ex = S.activitats.find(function(x){ return x.id === a.id; });
+    if (!ex) { S.activitats.push(a); return; }
+    if (!ex.nom || ex.nom.trim()==='') ex.nom = a.nom;
+    if (!ex.color) ex.color = a.color;
+    if (!ex.familiaId) ex.familiaId = a.familiaId;
+  });
+  // Garanties d'estructura
+  if (!S.vacances)  S.vacances  = [];
+  if (!S.diesMod)   S.diesMod   = {};
+  if (!S.registre)  S.registre  = {};
+  if (!S.examens)   S.examens   = [];
+  if (!S.pla)       S.pla       = [];
+  if (!S.config.minSessio)  S.config.minSessio  = 90;
+  if (!S.config.sprintHores) S.config.sprintHores = 1.5;
+  if (!S.config.nomBlanc)   S.config.nomBlanc   = NOM_BLANC_DEF;
+  if (!S.config.pomodoroMin) S.config.pomodoroMin = 45;
+  if (!S.config.descansMin)  S.config.descansMin  = 10;
+  // Famílies
+  S.activitats.forEach(function(a){ if (!a.familiaId) a.familiaId = 'f-personal'; });
+  // Horaris assignatures
+  S.assignatures.forEach(function(s){ if (!s.horari) s.horari = {}; });
+  // Netejar pla amb subjectIds invàlids
+  S.pla = S.pla.filter(function(b){
+    return !b.subjectId || S.assignatures.find(function(s){ return s.id === b.subjectId; });
+  });
+  // Restaurar patró si no té cole
+  var teCole = Object.values(S.patro).some(function(dia){
+    return (dia||[]).some(function(f){ return f.activitatId === 'act-cole'; });
+  });
+  if (!teCole) S.patro = def.patro;
+
+  // V9.8: normalitzar abans de netejar. Algunes activitats antigues
+  // només es poden detectar com a generades després de la migració storage.
+  if (window.PlanV8Storage && window.PlanV8Storage.ensureV8State) { window.PlanV8Storage.ensureV8State(S); }
+  // El configurador setmanal només conserva patró base.
+  // Cap activitat automàtica del planificador pot quedar dins S.patro.
+  netejarPatroConfiguracio();
+}
+migrar();
+if (window.PlanV8Storage && window.PlanV8Storage.ensureV8State) { window.PlanV8Storage.ensureV8State(S); }
+
+function desar(){ if (window.PlanV8Storage && window.PlanV8Storage.ensureV8State) { window.PlanV8Storage.ensureV8State(S); } try{ localStorage.setItem('planV8', JSON.stringify(S)); }catch(e){} }
+
+
+// ═══════════════════════════════════════════════════════════
+// V9 — MODEL FUNCIONAL: DISPONIBILITAT, DEMANDA, PLANS I DESVIACIONS
+// ═══════════════════════════════════════════════════════════
+function ensureV9State(){
+  if (window.PlanV8Storage && window.PlanV8Storage.ensureV8State) window.PlanV8Storage.ensureV8State(S);
+  if (!Array.isArray(S.availabilityBlocks)) S.availabilityBlocks = [];
+  if (!Array.isArray(S.plans)) S.plans = [];
+  if (!Array.isArray(S.deviations)) S.deviations = [];
+  if (!Array.isArray(S.executions)) S.executions = [];
+  if (!Array.isArray(S.projectTasks)) S.projectTasks = [];
+  S.config = S.config || {};
+  if (S.config.diagnosticPct == null) S.config.diagnosticPct = 40;
+  if (S.config.faseDiagnosticPct == null) S.config.faseDiagnosticPct = S.config.diagnosticPct;
+  S.config.diagnosticPct = Math.max(10, Math.min(70, Number(S.config.diagnosticPct)||40));
+  S.config.faseDiagnosticPct = S.config.diagnosticPct;
+  if (S.config.defaultStudyHours == null) S.config.defaultStudyHours = 3;
+  S.meta = S.meta || {};
+  if (S.meta.planModelVersion !== 'v9.6-project-phase-order'){
+    S.pla = (S.pla || []).filter(function(b){ return b && (b.fet || b.status === 'done'); });
+    (S.activitats || []).forEach(function(a){ if (a && a.automatic) a.active = false; });
+    S.meta.planModelVersion = 'v9.6-project-phase-order';
+  }
+}
+ensureV9State();
+
+function v9Now(){ return new Date().toISOString(); }
+function v9Uid(prefix){ return (prefix || 'v9') + '_' + Math.random().toString(36).slice(2,9) + '_' + Date.now(); }
+function v9ActivePlan(){ ensureV9State(); return S.plans.find(function(p){ return p.status === 'active'; }) || null; }
+function v9StartPlan(reason){
+  ensureV9State();
+  var previous = v9ActivePlan();
+  if (previous){ previous.status = 'discarded'; previous.discardedAt = v9Now(); previous.discardReason = reason || 'recalculate'; }
+  var plan = { id:v9Uid('plan'), status:'active', createdAt:v9Now(), discardedAt:null, discardReason:null, previousPlanId:previous ? previous.id : null };
+  S.plans.push(plan);
+  return plan;
+}
+function v9CurrentPlanOrCreate(){ return v9ActivePlan() || v9StartPlan('initial'); }
+function v9AcademicKind(ex){
+  if (!ex) return 'exam';
+  if (ex.kind) return ex.kind;
+  return ex.tipus === 'entrega' ? 'work' : 'exam';
+}
+function v9AcademicScope(ex){ return (ex && ex.scope) || 'lliure'; }
+function v9KindLabel(kind){
+  return ({exam:'Examen', work:'Treball', worksheets:'Fitxes', presentation:'Presentació', reading:'Lectura', review:'Repàs', other:'Altres'})[kind] || 'Activitat';
+}
+function v9KindIcon(kind){
+  return ({exam:'📝', work:'📄', worksheets:'🧾', presentation:'🎤', reading:'📖', review:'🔁', other:'📌'})[kind] || '📌';
+}
+function v9ScopeLabel(scope){
+  return ({tema:'Tema', parcial:'Parcial', trimestral:'Trimestral', final:'Final', lliure:'Altres'})[scope] || 'Altres';
+}
+function v9MainTaskKind(ex){ return v9AcademicKind(ex) === 'exam' ? 'study' : 'work'; }
+function v9MainTaskLabel(ex){
+  var k = v9AcademicKind(ex);
+  return ({exam:'Estudi', work:'Confecció del treball', worksheets:'Fitxes', presentation:'Preparació presentació', reading:'Lectura', review:'Sprint', other:'Treball'})[k] || 'Treball';
+}
+function v9ProjectTitle(ex){
+  var s = S.assignatures.find(function(x){ return x.id === ex.subjectId; });
+  var subjectName = s ? s.nom : 'Assignatura';
+  var title = (ex && ex.title ? String(ex.title).trim() : '');
+  if (!title) title = v9KindLabel(v9AcademicKind(ex)) + ' de ' + subjectName;
+  return title;
+}
+function v9ExamTitle(ex){ return v9ProjectTitle(ex); }
+function v9TargetStudyMinutes(ex){ return Math.max(0, Math.round(Number(ex.targetMinutes != null ? ex.targetMinutes : (ex.horesEstudi != null ? ex.horesEstudi*60 : (S.config.defaultStudyHours||3)*60)) || 0)); }
+function v9SprintMinutes(ex){ return Math.max(0, Math.round((ex.sprintHores == null ? (S.config.sprintHores || 1.5) : ex.sprintHores) * 60)); }
+function v9LegacyTipusFromKind(kind){ return kind === 'exam' ? 'examen' : 'entrega'; }
+function v9EnsureProjectForExam(ex){
+  ensureV9State();
+  if (!ex.kind) ex.kind = v9AcademicKind(ex);
+  if (!ex.scope) ex.scope = v9AcademicScope(ex);
+  ex.tipus = v9LegacyTipusFromKind(ex.kind);
+  if (!ex.projectId) ex.projectId = v9Uid('proj');
+  var project = S.projects.find(function(p){ return p.id === ex.projectId; });
+  var title = v9ProjectTitle(ex);
+  if (!project){
+    project = { id:ex.projectId, type:ex.kind, kind:ex.kind, scope:ex.scope, subjectId:ex.subjectId, title:title, deadlineDate:ex.data, deadlineTime:ex.hora || null, status: ex.data < avuiStr() ? 'completed' : 'active', createdAt:v9Now(), completedAt:null };
+    S.projects.push(project);
+  } else {
+    project.type = ex.kind;
+    project.kind = ex.kind;
+    project.scope = ex.scope;
+    project.subjectId = ex.subjectId;
+    project.title = title;
+    project.deadlineDate = ex.data;
+    project.deadlineTime = ex.hora || null;
+    if (ex.data >= avuiStr() && project.status === 'completed') project.status = 'active';
+  }
+  return project;
+}
+function v9EnsureTask(project, subjectId, kind, targetMinutes, priority){
+  var task = S.projectTasks.find(function(t){ return t.projectId === project.id && t.kind === kind; });
+  if (!task){
+    task = { id:v9Uid('task'), projectId:project.id, subjectId:subjectId, kind:kind, targetMinutes:targetMinutes, plannedMinutes:0, realMinutes:0, pendingMinutes:targetMinutes, lockedMinutes:true, priority:priority || 1 };
+    S.projectTasks.push(task);
+  }
+  task.subjectId = subjectId;
+  task.targetMinutes = Math.max(0, Math.round(targetMinutes || 0));
+  task.priority = priority || task.priority || 1;
+  return task;
+}
+function v9CreateGeneratedActivity(subjectId, projectId, taskId, kind){
+  if (window.PlanV8Storage && window.PlanV8Storage.createGeneratedActivity){
+    return window.PlanV8Storage.createGeneratedActivity(S, subjectId, projectId, kind, taskId);
+  }
+  var subject = S.assignatures.find(function(s){ return s.id === subjectId; });
+  var project = S.projects.find(function(p){ return p.id === projectId; });
+  if (project && project.status === 'completed') return {id:'_noop', nom:'', active:false};
+  var labels = {study:'Estudi', work:'Treball', review:'Sprint'};
+  S.activitats.forEach(function(a){
+    if (a.automatic && a.active !== false && a.subjectId === subjectId && a.projectId === projectId && a.kind === kind && a.taskId !== taskId) a.active = false;
+  });
+  var existing = S.activitats.find(function(a){ return a.automatic && a.active !== false && a.subjectId === subjectId && a.projectId === projectId && a.taskId === taskId && a.kind === kind; });
+  if (existing) return existing;
+  var name = (subject ? subject.nom : 'Assignatura') + ' · ' + (project ? project.title : 'Projecte') + ' · ' + (labels[kind] || kind);
+  var a = {id:uid(), nom:name, name:name, color:subject ? subject.color : '#818cf8', fixe:false, locked:false, familiaId:'f-estudi', kind:kind, subjectId:subjectId, projectId:projectId, taskId:taskId, automatic:true, reusable:false, active:true};
+  S.activitats.push(a); return a;
+}
+function v9SyncExamTasks(exOrd){
+  ensureV9State();
+  exOrd.forEach(function(ex, idx){
+    var project = v9EnsureProjectForExam(ex);
+    var mainKind = v9MainTaskKind(ex);
+    var mainTask = v9EnsureTask(project, ex.subjectId, mainKind, v9TargetStudyMinutes(ex), idx + 1);
+    var reviewTask = v9EnsureTask(project, ex.subjectId, 'review', v9SprintMinutes(ex), 0);
+    ex.projectId = project.id;
+    ex.mainTaskId = mainTask.id;
+    ex.reviewTaskId = reviewTask.id;
+    if (mainKind === 'study') ex.studyTaskId = mainTask.id;
+    if (mainKind === 'work') ex.workTaskId = mainTask.id;
+    var aMain = v9CreateGeneratedActivity(ex.subjectId, project.id, mainTask.id, mainKind);
+    var aReview = v9CreateGeneratedActivity(ex.subjectId, project.id, reviewTask.id, 'review');
+    ex.mainActivityId = aMain.id;
+    ex.reviewActivityId = aReview.id;
+    if (mainKind === 'study') ex.studyActivityId = aMain.id;
+    if (mainKind === 'work') ex.workActivityId = aMain.id;
+  });
+}
+function v9IsManualReleaseBlocking(ds, ini, fi){
+  ensureV9State();
+  var a = hm(ini), b = hm(fi);
+  return S.availabilityBlocks.some(function(x){
+    if (x.date !== ds || x.origin !== 'manual_release' || x.usable === true) return false;
+    var xa = hm(x.start), xb = hm(x.end);
+    return a < xb && b > xa;
+  });
+}
+function v9RegisterManualRelease(dataStr, f, releasedBy){
+  if (!f || !f.ini || !f.fi) return;
+  ensureV9State();
+  var exists = S.availabilityBlocks.some(function(x){ return x.date === dataStr && x.start === f.ini && x.end === f.fi && x.origin === 'manual_release'; });
+  if (exists) return;
+  S.availabilityBlocks.push({ id:v9Uid('av'), date:dataStr, start:f.ini, end:f.fi, minutes:durMin(f.ini,f.fi), origin:'manual_release', usable:false, sourceBlockId:f.id || null, releasedBy:releasedBy || 'user', reservedForProjectId:null });
+}
+function v9RegisterEmptyAvailability(dataStr, f){
+  if (!f || !f.ini || !f.fi || v9IsManualReleaseBlocking(dataStr, f.ini, f.fi)) return;
+  ensureV9State();
+  var exists = S.availabilityBlocks.some(function(x){ return x.date === dataStr && x.start === f.ini && x.end === f.fi && x.origin === 'empty_original'; });
+  if (!exists) S.availabilityBlocks.push({ id:v9Uid('av'), date:dataStr, start:f.ini, end:f.fi, minutes:durMin(f.ini,f.fi), origin:'empty_original', usable:true, sourceBlockId:null, releasedBy:null, reservedForProjectId:null });
+}
+function v9MarkManualReleaseUsable(date, start, end){
+  ensureV9State();
+  S.availabilityBlocks.forEach(function(x){ if (x.date === date && x.start === start && x.end === end && x.origin === 'manual_release') x.usable = true; });
+}
+function v9PlanBlock(base){
+  var plan = v9CurrentPlanOrCreate();
+  return Object.assign({ id:uid(), planId:plan.id, origin:'planner', locked:false, status:'planned', fet:false }, base);
+}
+function v9RecordDeviation(type, block, detail){
+  ensureV9State();
+  S.deviations.push(Object.assign({ id:v9Uid('dev'), createdAt:v9Now(), type:type, planId:block && block.planId || (v9ActivePlan()||{}).id || null, plannedBlockId:block && block.id || null, projectId:block && block.projectId || null, taskId:block && block.taskId || null }, detail || {}));
+}
+function v9RecomputeTaskStats(){
+  ensureV9State();
+  S.projectTasks.forEach(function(t){
+    var planned = S.pla.filter(function(b){ return b.taskId === t.id && b.status !== 'cancelled' && b.status !== 'replaced'; }).reduce(function(s,b){ return s + durMin(b.ini,b.fi); }, 0);
+    var real = S.executions.filter(function(e){ return e.taskId === t.id; }).reduce(function(s,e){ return s + (e.realMinutes || 0); }, 0);
+    t.plannedMinutes = planned;
+    t.realMinutes = real;
+    t.pendingMinutes = Math.max(0, (t.targetMinutes || 0) - real);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// HELPERS D'ACTIVITATS
+// ═══════════════════════════════════════════════════════════
+function getAct(id){
+  if (id === ID_BLANC) return {id:ID_BLANC, nom:S.config.nomBlanc||NOM_BLANC_DEF, color:'#cbd5e1', fixe:false, familiaId:'f-descans'};
+  var a = S.activitats.find(function(x){ return x.id === id; });
+  if (a) return a;
+  var s = S.assignatures.find(function(x){ return x.id === id; });
+  if (s) return {id:s.id, nom:s.nom, familiaId:'_asig', color:s.color, fixe:true};
+  return {id:'?', nom:'?', color:'#cbd5e1', fixe:false, familiaId:''};
+}
+
+function esActivitatGeneradaPlanificador(id){
+  if (!id || id === ID_BLANC) return false;
+  // act-estudi és una activitat base històrica del patró, no un bloc generat.
+  if (id === 'act-estudi') return false;
+  var a = S.activitats.find(function(x){ return x.id === id; });
+  if (!a) return false;
+  if (a.automatic === true || !!a.projectId || !!a.taskId) return true;
+
+  // Neteja defensiva per dades antigues guardades a localStorage:
+  // en versions anteriors algunes activitats generades van quedar dins el patró
+  // sense automatic/projectId/taskId, però amb nom de tipus "Treball de Matemàtiques".
+  var txt = String(a.nom || a.name || '').toLowerCase();
+  if (txt.indexOf('treball de ') >= 0) return true;
+  if (txt.indexOf('estudi de ') >= 0) return true;
+  if (txt.indexOf('repàs de ') >= 0 || txt.indexOf('repas de ') >= 0) return true;
+  if (txt.indexOf('sprint') >= 0) return true;
+  if ((a.kind === 'study' || a.kind === 'work' || a.kind === 'review') && txt.indexOf('·') >= 0) return true;
+
+  return false;
+}
+function esFranjaConfiguracioValida(f){
+  if (!f) return false;
+  if (f._pla === true || f.projectId || f.taskId) return false;
+  if (esActivitatGeneradaPlanificador(f.activitatId)) return false;
+  return true;
+}
+function netejarPatroConfiguracio(){
+  Object.keys(S.patro || {}).forEach(function(k){
+    S.patro[k] = (S.patro[k] || []).filter(esFranjaConfiguracioValida);
+  });
+}
+function colorAct(id){ return getAct(id).color || '#cbd5e1'; }
+function esAssignaturaId(id){ return !!S.assignatures.find(function(s){ return s.id === id; }); }
+function colorAssignatura50(c){
+  if (/^#[0-9a-fA-F]{6}$/.test(c)){
+    var r = parseInt(c.slice(1,3),16), g = parseInt(c.slice(3,5),16), b = parseInt(c.slice(5,7),16);
+    return 'rgba('+r+','+g+','+b+',0.5)';
+  }
+  return c;
+}
+function tipusTreballFranja(f){ return f && f._tipus === 'treball'; }
+function tipusEstudiFranja(f){ return f && f._pla && !f._sprint && !tipusTreballFranja(f); }
+function marcaAiguaFranja(f){
+  if (tipusTreballFranja(f)) return 'TREBALL';
+  if (tipusEstudiFranja(f)) return 'ESTUDI';
+  return '';
+}
+function nomFranja(f){
+  var act = getAct(f.activitatId);
+  if (f._sprint) return '⚡ Sprint · ' + act.nom;
+  if (tipusTreballFranja(f)) return '✏️ Treball de ' + act.nom;
+  if (tipusEstudiFranja(f)) return '📚 Estudi de ' + act.nom;
+  return act.nom;
+}
+function tipusVisualFranja(f){
+  if (f._sprint) return 'tipus-sprint';
+  if (tipusTreballFranja(f)) return 'tipus-treball';
+  if (tipusEstudiFranja(f)) return 'tipus-estudi';
+  return '';
+}
+function limitFranja(f, ds, minIni, minFi){
+  var a = Math.max(hm(f.ini), minIni == null ? 0 : minIni);
+  var b = Math.min(hm(f.fi), minFi == null ? 1440 : minFi);
+  if (b <= a) return null;
+  return Object.assign({}, f, {ini:mh(a), fi:mh(b)});
+}
+function ultimDeadline(){
+  var avui2 = avuiStr();
+  var exOrd = S.examens.filter(function(e){ return e.data >= avui2; }).sort(function(a,b){
+    return (a.data+'T'+(a.hora||'23:59')).localeCompare(b.data+'T'+(b.hora||'23:59'));
+  });
+  if (!exOrd.length) return null;
+  var u = exOrd[exOrd.length-1];
+  return {data:u.data, min:hm(u.hora||'23:59')};
+}
+function minIniPlanificable(ds){ return ds === avuiStr() ? araMin() : 0; }
+
+// Agrupa assignatures escolars → 'act-cole' per a les barres
+function keyActivitat(id){
+  return S.assignatures.find(function(s){ return s.id === id; }) ? 'act-cole' : id;
+}
+
+// ═══════════════════════════════════════════════════════════
+// VACANCES
+// ═══════════════════════════════════════════════════════════
+function esVacances(dataStr){
+  return (S.vacances||[]).some(function(v){ return dataStr >= v.ini && dataStr <= v.fi; });
+}
+
+// ═══════════════════════════════════════════════════════════
+// FRANGES DEL DIA
+// ═══════════════════════════════════════════════════════════
+function frangesBaseDia(dataStr){
+  var raw = S.diesMod[dataStr]
+    ? S.diesMod[dataStr].filter(function(f){ return f.activa !== false; })
+    : JSON.parse(JSON.stringify(S.patro[diaEU(dataStr)]||[]));
+
+  // Continuació nocturna del dia anterior
+  var ahir = addDies(dataStr, -1);
+  if (!esVacances(ahir)){
+    var rawAhir = S.diesMod[ahir]
+      ? S.diesMod[ahir].filter(function(f){ return f.activa !== false; })
+      : JSON.parse(JSON.stringify(S.patro[diaEU(ahir)]||[]));
+    rawAhir.forEach(function(f){
+      var ini = hm(f.ini), fi = hm(f.fi);
+      if (ini > fi && fi > 0 && fi <= 480)
+        raw.push(Object.assign({}, f, {id:f.id+'_n', ini:'00:00', fi:f.fi, _nocturn:true}));
+    });
+  }
+
+  var proc = [];
+  raw.forEach(function(f){
+    if (f._nocturn){ proc.push(f); return; }
+    var ini = hm(f.ini), fi = hm(f.fi);
+    if (ini >= fi && !(ini > fi)) return;
+    if (ini > fi) proc.push(Object.assign({}, f, {id:f.id+'_t', fi:'23:59'}));
+    else proc.push(f);
+  });
+  proc.sort(function(a, b){ return hm(a.ini) - hm(b.ini); });
+
+  var net = [], cur = 0;
+  proc.forEach(function(f){
+    var ini = hm(f.ini), fi = hm(f.fi);
+    if (fi <= ini) return;
+    // Franges manuals sempre sobreviuen, fins i tot si se solapen (es mostren a sobre)
+    if (f._manual){
+      net.push(f);
+      if (fi > cur) cur = fi;
+      return;
+    }
+    if (ini < cur) return;
+    net.push(f); cur = fi;
+  });
+  return net;
+}
+
+function frangesDia(dataStr){
+  var base = frangesBaseDia(dataStr);
+  var plaBlocs = S.pla.filter(function(b){ return b.data === dataStr; });
+
+  var tots = base.concat(plaBlocs.map(function(b){
+    return {id:b.id, activitatId:b.subjectId, ini:b.ini, fi:b.fi,
+            _pla:true, _sprint:b.tipus==='sprint', _tipus:b.tipus, _fet:b.fet, _examId:b.examId};
+  }));
+  tots.sort(function(a, b){ return hm(a.ini) - hm(b.ini); });
+
+  // Durant vacances: eliminar cole i assignatures
+  if (esVacances(dataStr)){
+    tots = tots.filter(function(f){
+      return f._pla
+        || f.activitatId === ID_BLANC
+        || (getAct(f.activitatId).familiaId !== 'f-lect'
+            && !S.assignatures.find(function(s){ return s.id === f.activitatId; }));
+    });
+  }
+
+  // SEMPRE eliminar act-cole; substituir per assignatures amb horari
+  var diaEu = diaEU(dataStr);
+  var asigAvui = S.assignatures.filter(function(s){
+    var h = s.horari && s.horari[diaEu];
+    if (!h) return false;
+    if (Array.isArray(h)) return h.some(function(f){ return f.ini && f.fi; });
+    return h.ini && h.fi;
+  });
+  var nosCole = tots.filter(function(f){
+    return f.activitatId !== 'act-cole' && !f.activitatId.startsWith('act-cole');
+  });
+  if (!S.diesMod[dataStr]){
+    asigAvui.forEach(function(s){
+      var h = s.horari[diaEu];
+      var franges = Array.isArray(h) ? h : [h];
+      franges.forEach(function(f, j){
+        if (f && f.ini && f.fi)
+          nosCole.push({id:'hc-'+s.id+'-'+diaEu+'-'+j, activitatId:s.id, ini:f.ini, fi:f.fi, _horariCole:true});
+      });
+    });
+  }
+  nosCole.sort(function(a, b){ return hm(a.ini) - hm(b.ini); });
+  tots = nosCole;
+
+  // Calcular _durTotal per Dormir (matí + nit) sense eliminar cap bloc
+  var durTotalMap = {};
+  tots.forEach(function(f){
+    if (f._pla || f._horariCole || f._manual) return;
+    var key = f.activitatId.replace(/_n$/,'').replace(/_t$/,'');
+    durTotalMap[key] = (durTotalMap[key] || 0) + durMin(f.ini, f.fi);
+  });
+  var result = tots.map(function(f){
+    if (f._pla || f._horariCole || f._manual) return f;
+    var key = f.activitatId.replace(/_n$/,'').replace(/_t$/,'');
+    if (durTotalMap[key] > durMin(f.ini, f.fi)){
+      return Object.assign({}, f, {activitatId:key, _durTotal:durTotalMap[key]});
+    }
+    return Object.assign({}, f, {activitatId:key});
+  });
+  result.sort(function(a, b){ return hm(a.ini) - hm(b.ini); });
+
+  // Els blocs del pla tenen prioritat — eliminar/retallar franges base que se solapin
+  var plaResult = result.filter(function(f){ return f._pla; });
+  var baseResult = result.filter(function(f){ return !f._pla; });
+  var resultFinal = [];
+  baseResult.forEach(function(f){
+    var ini = hm(f.ini), fi2 = hm(f.fi);
+    var eliminat = false;
+    plaResult.forEach(function(p){
+      if (eliminat) return;
+      var pIni = hm(p.ini), pFi = hm(p.fi);
+      if (pFi <= ini || pIni >= fi2) return;
+      if (pIni <= ini && pFi >= fi2){ eliminat = true; return; }
+      if (pIni > ini && pFi < fi2){
+        resultFinal.push(Object.assign({}, f, {fi: mh(pIni)}));
+        ini = pFi; return;
+      }
+      if (pIni <= ini) ini = pFi;
+      else fi2 = pIni;
+    });
+    if (!eliminat && fi2 > ini) resultFinal.push(Object.assign({}, f, {ini: mh(ini), fi: mh(fi2)}));
+  });
+  plaResult.forEach(function(p){ resultFinal.push(p); });
+  resultFinal.sort(function(a, b){ return hm(a.ini) - hm(b.ini); });
+
+  // Omplir blancs
+  var res = [], cur = 0;
+  resultFinal.forEach(function(f){
+    var ini = hm(f.ini), fi = hm(f.fi);
+    if (fi <= ini) return;
+    if (ini > cur) res.push({id:'b'+cur, activitatId:ID_BLANC, ini:mh(cur), fi:f.ini, _blanc:true});
+    res.push(f); cur = fi;
+  });
+  if (cur < 1440) res.push({id:'bend', activitatId:ID_BLANC, ini:mh(cur), fi:'23:59', _blanc:true});
+  return res;
+}
+
+// ═══════════════════════════════════════════════════════════
+// SETMANES DEL CURS
+// ═══════════════════════════════════════════════════════════
+function setmanesDelCurs(){
+  if (!S.config.cursIni || !S.config.cursFi) return [];
+  var res = [], d = new Date(S.config.cursIni+'T12:00'), fi = new Date(S.config.cursFi+'T12:00');
+  while (d.getDay() !== 1) d.setDate(d.getDate()-1);
+  while (d <= fi){
+    var set = [];
+    for (var i = 0; i < 7; i++){
+      var ds = d.toISOString().split('T')[0];
+      set.push(new Date(ds+'T12:00') <= fi ? ds : null);
+      d.setDate(d.getDate()+1);
+    }
+    res.push(set);
+  }
+  return res;
+}
+
+// ═══════════════════════════════════════════════════════════
+// CALENDARI 24H
+// ═══════════════════════════════════════════════════════════
+function renderCal(colEl, hEl, franges, altPx, dataStr, editable){
+  var fac = altPx / 1440;
+  var hH = '', fH = '';
+  for (var h = 0; h < 24; h++){
+    var t = Math.round(h*60*fac);
+    hH += '<div class="cal-h-tick" style="top:'+t+'px">'+String(h).padStart(2,'0')+'</div>';
+    // Marca de :15, :30, :45 a la columna d'hores
+    hH += '<div style="position:absolute;left:0;right:0;font-size:7px;color:#cbd5e1;text-align:right;padding-right:3px;line-height:1;pointer-events:none;top:'+Math.round((h*60+15)*fac)+'px">:15</div>';
+    hH += '<div style="position:absolute;left:0;right:0;font-size:8px;color:#b0b8c4;text-align:right;padding-right:3px;line-height:1;pointer-events:none;top:'+Math.round((h*60+30)*fac)+'px">:30</div>';
+    hH += '<div style="position:absolute;left:0;right:0;font-size:7px;color:#cbd5e1;text-align:right;padding-right:3px;line-height:1;pointer-events:none;top:'+Math.round((h*60+45)*fac)+'px">:45</div>';
+    fH += '<div class="cal-linia cal-linia-h" style="top:'+t+'px"></div>';
+    // Mitja hora
+    fH += '<div class="cal-linia cal-linia-m" style="top:'+Math.round((h*60+30)*fac)+'px"></div>';
+    // Quarts (15 i 45 min) — línia més subtil
+    fH += '<div class="cal-linia" style="top:'+Math.round((h*60+15)*fac)+'px;background:#f4f6f8"></div>';
+    fH += '<div class="cal-linia" style="top:'+Math.round((h*60+45)*fac)+'px;background:#f4f6f8"></div>';
+  }
+  if (dataStr === avuiStr())
+    fH += '<div class="cal-now" style="top:'+Math.round(araMin()*fac)+'px"></div>';
+
+  hEl.innerHTML = hH;
+
+  franges.forEach(function(f){
+    var ini = hm(f.ini), fi2 = hm(f.fi); if (fi2 <= ini) return;
+    var top = Math.round(ini*fac), ht = Math.max(Math.round((fi2-ini)*fac), 4);
+    var c = colorAct(f.activitatId);
+    var act = getAct(f.activitatId);
+    var blanc = f._blanc, sprint = f._sprint, esPla = f._pla && !sprint;
+    var esTreball = tipusTreballFranja(f);
+    var esEstudi = tipusEstudiFranja(f);
+    var marcaAigua = marcaAiguaFranja(f);
+    var bg, bl, textColor;
+    if (blanc){
+      bg='#f8fafc'; bl='2px dashed #e2e8f0'; textColor='#cbd5e1';
+    } else if (sprint){
+      bg='#fff5f5'; bl='4px solid #ef4444'; textColor='#ef4444';
+    } else if (esEstudi || esTreball){
+      bg=colorAssignatura50(c); bl='4px solid '+c; textColor=c;
+    } else {
+      bg=c+'15'; bl='3px solid '+c; textColor=c;
+    }
+    if (f._manual && !blanc && !esPla && !esTreball){ bg='#fefce8'; bl='3px solid #eab308'; textColor='#92400e'; }
+    var nomBloc = nomFranja(f);
+    var txt;
+    if (blanc){
+      txt = ht >= 16 ? '<div class="cal-bloc-nom" style="color:#cbd5e1">+</div>' : '';
+    } else {
+      var pinHtml = f._manual
+        ? '<span style="position:absolute;top:2px;right:3px;font-size:13px;line-height:1;z-index:2">📌</span>'
+        : '';
+      txt = '<div class="cal-bloc-cont">'
+          + (marcaAigua ? '<div class="cal-watermark">'+marcaAigua+'</div>' : '')
+          + pinHtml
+          + '<div class="cal-bloc-nom" style="color:'+textColor+';padding-right:'+(f._manual?'18px':'6px')+';position:relative;z-index:1">'+nomBloc+'</div>'
+          + (ht >= 36 ? '<div class="cal-bloc-hora" style="color:'+textColor+';position:relative;z-index:1">'+f.ini+'–'+f.fi+'</div>' : '')
+          + '</div>';
+    }
+    fH += '<div class="cal-bloc '+tipusVisualFranja(f)+'" data-fid="'+f.id+'" data-blanc="'+(blanc?1:0)+'" data-ini="'+f.ini+'" data-fi="'+f.fi+'" style="top:'+top+'px;height:'+ht+'px;background:'+bg+';border-left:'+bl+';color:'+textColor+'">'+txt+'</div>';
+  });
+  colEl.innerHTML = fH;
+
+  if (editable){
+    colEl.querySelectorAll('.cal-bloc').forEach(function(el){
+      el.addEventListener('click', function(e){
+        e.stopPropagation();
+        if (el.dataset.blanc === '1') obrirModalNovaFranja(el.dataset.ini, el.dataset.fi, dataStr);
+        else obrirModalEditFranja(el.dataset.fid, dataStr);
+      });
+    });
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// CALENDARI SETMANAL
+// ═══════════════════════════════════════════════════════════
+var SET_ALT = 480;
+function renderCalSet(containerEl, dies, avui2){
+  var fac = SET_ALT / 1440;
+  var html = '<div class="set-wrap"><div class="set-header"><div class="set-cap"></div>';
+  dies.forEach(function(dia, i){
+    var esAvui = dia === avui2;
+    var dO = dia ? new Date(dia+'T12:00') : null;
+    html += '<div class="set-cap'+(esAvui?' avui':'')+'">'
+      + DIES_C[i] + (dO ? ' <br><span style="font-size:13px;font-weight:800">'+dO.getDate()+'</span>' : '')
+      + '</div>';
+  });
+  html += '</div><div class="set-body" style="height:'+SET_ALT+'px"><div class="set-hora-col" style="height:'+SET_ALT+'px">';
+  for (var h = 0; h < 24; h++)
+    html += '<div class="set-hora-tick" style="top:'+Math.round(h*60*fac)+'px">'+String(h).padStart(2,'0')+'</div>';
+  html += '</div>';
+  dies.forEach(function(dia, i){
+    html += '<div class="set-dia-col" data-dia="'+(dia||'')+'" style="height:'+SET_ALT+'px">';
+    for (var h2 = 0; h2 < 24; h2++){
+      html += '<div class="set-linia set-linia-h" style="top:'+Math.round(h2*60*fac)+'px"></div>';
+      html += '<div class="set-linia" style="top:'+Math.round((h2*60+30)*fac)+'px"></div>';
+    }
+    if (dia === avui2) html += '<div class="set-now" style="top:'+Math.round(araMin()*fac)+'px"></div>';
+    if (dia){
+      var fr = frangesDia(dia);
+      fr.forEach(function(f){
+        var ini = hm(f.ini), fi2 = hm(f.fi); if (fi2 <= ini) return;
+        var top2 = Math.round(ini*fac), ht2 = Math.max(Math.round((fi2-ini)*fac), 3);
+        var c = colorAct(f.activitatId), act = getAct(f.activitatId);
+        var blanc = f._blanc, sprint = f._sprint, esPla = f._pla && !sprint;
+        var esTreball = tipusTreballFranja(f);
+        var esEstudi = tipusEstudiFranja(f);
+        var marcaAigua = marcaAiguaFranja(f);
+        if (blanc && ht2 < 6) return;
+        var bg = blanc ? 'transparent' : (sprint ? '#fee2e2' : ((esEstudi || esTreball) ? colorAssignatura50(c) : c+'15'));
+        var bl = blanc ? 'none' : (sprint ? '2px solid #ef4444' : '2px solid '+c);
+        var textColor = sprint ? '#ef4444' : c;
+        html += '<div class="set-bloc '+tipusVisualFranja(f)+'" data-dia="'+dia+'" style="top:'+top2+'px;height:'+ht2+'px;background:'+bg+';border-left:'+bl+';color:'+textColor+'">'
+          + '<div class="set-bloc-cont">'
+          + (marcaAigua ? '<div class="set-watermark">'+marcaAigua+'</div>' : '')
+          + (ht2 >= 12 && !blanc ? '<div class="set-bloc-txt" style="color:'+textColor+';position:relative;z-index:1">'+nomFranja(f)+'</div>' : '')
+          + '</div></div>';
+      });
+    }
+    html += '</div>';
+  });
+  html += '</div></div>';
+  containerEl.innerHTML = html;
+  containerEl.querySelectorAll('.set-dia-col').forEach(function(el){
+    el.addEventListener('click', function(){
+      var dia = el.dataset.dia; if (!dia) return;
+      agDia = dia; agVista = 'dia';
+      ge('btn-vista-dia').classList.add('on'); ge('btn-vista-set').classList.remove('on');
+      renderAgDia();
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// QR
+// ═══════════════════════════════════════════════════════════
+function generarQR(url){
+  var qrEl = ge('cfg-qr'); if (!qrEl) return;
+  var img = document.createElement('img');
+  img.src = 'https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=' + encodeURIComponent(url);
+  img.style.cssText = 'width:180px;height:180px;border-radius:8px'; img.alt = 'QR';
+  qrEl.innerHTML = ''; qrEl.appendChild(img);
+}
+
+// ═══════════════════════════════════════════════════════════
+// WAKELOOK
+// ═══════════════════════════════════════════════════════════
+var _wakeLock = null;
+function activarWakeLock(){
+  if ('wakeLock' in navigator)
+    navigator.wakeLock.request('screen').then(function(wl){ _wakeLock = wl; }).catch(function(){});
+}
+document.addEventListener('visibilitychange', function(){
+  if (document.visibilityState === 'visible') activarWakeLock();
+});
+
+// ═══════════════════════════════════════════════════════════
+// SESSIÓ ACTIVA
+// ═══════════════════════════════════════════════════════════
+var sessioActiva = null;
+var _pomodoroIni = null;
+var _enDescans = false;
+var _descansFi = null;
+
+function _tancarSessio(){
+  if (!sessioActiva) return;
+  var avui2 = avuiStr();
+  if (!S.registre[avui2]) S.registre[avui2] = [];
+  var fi2 = new Date().toTimeString().slice(0,5);
+  var reg = {activitatId:sessioActiva.activitatId, ini:sessioActiva.ini, fi:fi2, _franjaId:sessioActiva._franjaId};
+  S.registre[avui2].push(reg);
+  if (sessioActiva._franjaId && S.modeAval){
+    var bpla = S.pla.find(function(b){ return b.id === sessioActiva._franjaId; });
+    if (bpla && !bpla.fet){
+      var tempsFet = durMin(sessioActiva.ini, fi2);
+      var tempsTot = durMin(bpla.ini, bpla.fi);
+      if (tempsFet >= tempsTot * 0.8) bpla.fet = true;
+      else recalcularPla();
+    }
+  }
+  sessioActiva = null;
+}
+
+// ═══════════════════════════════════════════════════════════
+// PANEL ARA — RENDER
+// ═══════════════════════════════════════════════════════════
+function renderAra(){
+  var avui2 = avuiStr(), m = araMin();
+  var fr = frangesDia(avui2);
+  var nom = S.config.nomAlumna || '';
+  var avatar = S.config.avatarEmoji || '🎓';
+
+  ge('ara-avatar').textContent = avatar;
+  ge('ara-salut').textContent = nom ? 'Hola, '+nom+'! 👋' : 'Hola! 👋';
+  ge('ara-data').textContent = new Date().toLocaleDateString('ca-ES', {weekday:'long', day:'numeric', month:'long'});
+  ge('ara-pill').innerHTML = S.modeAval
+    ? '<span class="pill p-blue">✨ Mode estudi</span>'
+    : '<span class="pill p-muted">😊 Mode normal</span>';
+
+  // Bloc actual — prioritat: sessió manual > pla > patró
+  var actual = null;
+  if (sessioActiva && sessioActiva._manual){
+    var fi_franja = null;
+    for (var i = 0; i < fr.length; i++){
+      if (fr[i]._pla && m >= hm(fr[i].ini) && m < hm(fr[i].fi)){ fi_franja = fr[i].fi; break; }
+    }
+    if (!fi_franja){
+      for (var i = 0; i < fr.length; i++){
+        if (!fr[i]._blanc && !fr[i]._pla && m >= hm(fr[i].ini) && m < hm(fr[i].fi)){ fi_franja = fr[i].fi; break; }
+      }
+    }
+    actual = {
+      id: '_manual',
+      activitatId: sessioActiva.activitatId,
+      ini: sessioActiva.ini,
+      fi: fi_franja || mh(m + 60),
+      _manual: true
+    };
+  }
+  if (!actual){
+    for (var i = 0; i < fr.length; i++){
+      if (fr[i]._pla && m >= hm(fr[i].ini) && m < hm(fr[i].fi)){ actual = fr[i]; break; }
+    }
+  }
+  if (!actual){
+    for (var i = 0; i < fr.length; i++){
+      if (!fr[i]._pla && m >= hm(fr[i].ini) && m < hm(fr[i].fi)){ actual = fr[i]; break; }
+    }
+  }
+  var seg = fr.find(function(f){ return hm(f.ini) > m; }) || null;
+
+  if (actual){
+    var act = getAct(actual.activitatId), c = colorAct(actual.activitatId);
+    var esBlocEstudi = actual._pla && !actual._sprint;
+    var esSprint = actual._sprint;
+    var esHorariCole = actual._horariCole;
+
+    var blocBg;
+    if (esHorariCole) blocBg = 'linear-gradient(135deg,'+c+','+c+'cc)';
+    else if (esBlocEstudi) blocBg = 'linear-gradient(135deg,'+c+'dd,'+c+'99)';
+    else if (esSprint) blocBg = 'linear-gradient(135deg,#ef4444,#dc2626)';
+    else if (actual._manual) blocBg = 'linear-gradient(135deg,'+c+','+c+'cc)';
+    else blocBg = 'linear-gradient(135deg,#818cf8,#6366f1)';
+
+    ge('ara-bloc-card').style.background = blocBg;
+    var marca = ge('ara-marca-aigua');
+    if (marca){
+      marca.style.display = (esBlocEstudi || esSprint) ? 'block' : 'none';
+      marca.textContent = esSprint ? 'SPRINT' : 'ESTUDI';
+    }
+    var nomMostrat = nomFranja(actual);
+    ge('ara-nom').innerHTML = nomMostrat;
+    ge('ara-info').textContent = actual.ini + ' – ' + actual.fi + ' · ' + durMin(actual.ini, actual.fi) + 'min';
+
+    var du = durMin(actual.ini, actual.fi), po = Math.max(0, m - hm(actual.ini));
+    var pct = Math.min(100, Math.round((po/du)*100));
+    var ps = po*60, ph = Math.floor(ps/3600), pm2 = Math.floor((ps%3600)/60), pss = ps%60;
+    ge('ara-crono').textContent = ph
+      ? ph+':'+String(pm2).padStart(2,'0')+':'+String(pss).padStart(2,'0')
+      : String(pm2).padStart(2,'0')+':'+String(pss).padStart(2,'0');
+    ge('ara-pct').textContent = pct+'%';
+    ge('ara-bar').style.width = pct+'%';
+    ge('ara-queda').textContent = fmtH(Math.max(0, hm(actual.fi) - m));
+  } else {
+    ge('ara-bloc-card').style.background = 'linear-gradient(135deg,#818cf8,#6366f1)';
+    var marca2 = ge('ara-marca-aigua'); if (marca2) marca2.style.display = 'none';
+    ge('ara-nom').textContent = 'Cap bloc actiu';
+    ge('ara-crono').textContent = '--:--'; ge('ara-pct').textContent = '0%';
+    ge('ara-bar').style.width = '0%'; ge('ara-queda').textContent = '—';
+  }
+
+  ge('ara-seg').textContent = seg ? nomFranja(seg) : '—';
+  ge('ara-seg-info').textContent = seg ? seg.ini + ' · en ' + (hm(seg.ini) - m > 0 ? hm(seg.ini) - m : hm(seg.ini)+1440-m) + 'min' : '';
+
+  // Selector: ocult per horari escolar
+  var _franjaSubj = sessioActiva && sessioActiva._franjaSubjacent
+    ? fr.find(function(f){ return f.id === sessioActiva._franjaSubjacent; }) : null;
+  var esFranjaEscolar = actual && (actual._horariCole || actual.activitatId === 'act-cole')
+    || (_franjaSubj && (_franjaSubj._horariCole || _franjaSubj.activitatId === 'act-cole'))
+    || (sessioActiva && (function(){
+      var frActual = fr.find(function(f){ return !f._blanc && !f._manual && araMin() >= hm(f.ini) && araMin() < hm(f.fi); });
+      return frActual && (frActual._horariCole || frActual.activitatId === 'act-cole');
+    })());
+  var selWrap = ge('ara-canviar-wrap'), blocCard = ge('ara-bloc-card');
+  if (esFranjaEscolar){
+    selWrap.style.display = 'none';
+    blocCard.style.borderRadius = '16px'; blocCard.style.marginBottom = '10px';
+  } else {
+    selWrap.style.display = 'block';
+    blocCard.style.borderRadius = '16px 16px 0 0'; blocCard.style.marginBottom = '0';
+  }
+
+  // KPIs
+  var totalM = 0, planM = 0, blancsM = 0, fetes = 0, blocsTotal = 0;
+  fr.forEach(function(f){
+    var d = durMin(f.ini, f.fi); totalM += d;
+    if (f._blanc) blancsM += d;
+    else { planM += d; blocsTotal++; if (hm(f.fi) <= m) fetes++; }
+  });
+  var kd = ge('ara-kpis'); kd.innerHTML = '';
+  [{v:fetes+'/'+blocsTotal, l:'Completats ✅', c:'#22c55e'},
+   {v:(blocsTotal?Math.round(fetes/blocsTotal*100):0)+'%', l:'Compliment 🎯', c:'#6366f1'},
+   {v:fmtH(planM), l:'Planificat 🗓️', c:'#f59e0b'},
+   {v:(totalM?Math.round(blancsM/totalM*100):0)+'%', l:'Temps lliure 🌈', c:'#ec4899'}
+  ].forEach(function(k){
+    var d = document.createElement('div'); d.className = 'kpi';
+    d.innerHTML = '<div class="kpi-val" style="color:'+k.c+'">'+k.v+'</div><div class="kpi-lab">'+k.l+'</div>';
+    kd.appendChild(d);
+  });
+
+  // Barres "Com va el dia?"
+  var prevMap = {}, prevOrdre = [], prevComptat = {};
+  fr.forEach(function(f){
+    if (durMin(f.ini,f.fi) < 1) return;
+    if (f._blanc && durMin(f.ini,f.fi) < 5) return;
+    var key = keyActivitat(f.activitatId);
+    if (!prevMap[key]){ prevMap[key] = 0; prevOrdre.push(key); }
+    if (f._durTotal && !prevComptat[key]){
+      prevMap[key] += f._durTotal;
+      prevComptat[key] = true;
+    } else if (!prevComptat[key]) {
+      prevMap[key] += durMin(f.ini, f.fi);
+    }
+  });
+  var realMap = {}, realComptat = {};
+  fr.forEach(function(f){
+    if (f._blanc) return;
+    var key = keyActivitat(f.activitatId);
+    var ini = hm(f.ini), fi2 = hm(f.fi);
+    var dur;
+    if (f._durTotal && !realComptat[key]){
+      dur = f._durTotal;
+      realComptat[key] = true;
+    } else if (f._durTotal) {
+      return;
+    } else {
+      dur = durMin(f.ini, f.fi);
+    }
+    if (dur < 1) return;
+    if (fi2 <= m) realMap[key] = (realMap[key]||0) + dur;
+    else if (ini <= m) realMap[key] = (realMap[key]||0) + (m - ini);
+  });
+  (S.registre[avui2]||[]).forEach(function(r){
+    var d = durMin(r.ini, r.fi);
+    if (d > 0) realMap[keyActivitat(r.activitatId)] = (realMap[keyActivitat(r.activitatId)]||0) + d;
+  });
+  if (sessioActiva && sessioActiva._manual && sessioActiva.ini){
+    var tEnCurs = Math.max(0, m - hm(sessioActiva.ini));
+    if (tEnCurs > 0){
+      var keyEnCurs = keyActivitat(sessioActiva.activitatId);
+      realMap[keyEnCurs] = (realMap[keyEnCurs]||0) + tEnCurs;
+      if (!prevMap[keyEnCurs]){ prevMap[keyEnCurs] = tEnCurs; prevOrdre.push(keyEnCurs); }
+    }
+  }
+  var totalDiaMin = 1440, pesosAcum = 0;
+  prevOrdre.forEach(function(key, i){
+    if (i === prevOrdre.length-1) prevMap[key+'_pes'] = Math.max(0, 100 - pesosAcum);
+    else { var p = Math.round((prevMap[key]||0)/totalDiaMin*100); prevMap[key+'_pes'] = p; pesosAcum += p; }
+  });
+  var bd = ge('ara-barres'); bd.innerHTML = '';
+  prevOrdre.forEach(function(key){
+    var blanc = key === ID_BLANC;
+    var act2 = getAct(key);
+    var nomMostrat = blanc ? (S.config.nomBlanc||NOM_BLANC_DEF) : act2.nom;
+    // act-cole sense assignatures: mostrar 'Cole 🏫'
+    if (key === 'act-cole') nomMostrat = 'Cole 🏫';
+    var c = blanc ? '#94a3b8' : (act2.color||'#6366f1');
+    var dPrev = prevMap[key]||0, dReal = realMap[key]||0, pes = prevMap[key+'_pes']||0;
+    var pctReal = dPrev > 0 ? Math.min(100, Math.round(dReal/dPrev*100)) : 0;
+    var div = document.createElement('div'); div.style.cssText = 'padding:6px 0;border-bottom:1px solid #f1f5f9';
+    div.innerHTML = '<div style="display:flex;justify-content:space-between;margin-bottom:4px">'
+      + '<div style="display:flex;align-items:center;gap:6px">'
+      + (blanc ? '<span style="width:10px;height:10px;border:1.5px dashed #cbd5e1;border-radius:50%;display:inline-block"></span>'
+               : '<span class="dot" style="background:'+c+'"></span>')
+      + '<span style="font-size:13px;font-weight:'+(blanc?400:700)+';color:'+(blanc?'#94a3b8':'#334155')+'">'+nomMostrat+'</span>'
+      + '</div><span class="small" style="color:#94a3b8">'+pes+'% del dia</span></div>'
+      + '<div class="prog-bar" style="margin-bottom:2px"><div class="prog-fill" style="width:100%;background:'+(blanc?'#e2e8f0':c)+'30"></div></div>'
+      + '<div style="display:flex;align-items:center;gap:6px">'
+      + '<div class="prog-bar" style="flex:1"><div class="prog-fill" style="width:'+pctReal+'%;background:'+(blanc?'#e2e8f0':c)+'"></div></div>'
+      + '<span style="font-size:12px;font-weight:700;color:'+(blanc?'#94a3b8':c)+';width:36px;text-align:right">'+pctReal+'%</span>'
+      + '</div>';
+    bd.appendChild(div);
+  });
+}
+
+// ─── Dropdown selector ARA ─────────────────────────────────
+function _construirDropdown(actual){
+  var drop = ge('ara-sel-drop'); if (!drop) return;
+  var actActualId = actual ? (actual._blanc ? ID_BLANC : keyActivitat(actual.activitatId)) : null;
+  var opcions = [];
+  // Activitats (excl. cole, estudi genèric, blanc, actual, inactives, projectes completats)
+  S.activitats.filter(function(a){
+    if (a.active === false) return false;
+    if (a.id === ID_BLANC || a.id === 'act-cole' || a.id === 'act-estudi') return false;
+    if (a.id === actActualId) return false;
+    if (S.assignatures.find(function(s){ return s.id === a.id; })) return false;
+    if (a.automatic && a.projectId){
+      var proj = S.projects && S.projects.find(function(p){ return p.id === a.projectId; });
+      if (proj && proj.status === 'completed') return false;
+      if (proj && proj.deadlineDate && proj.deadlineDate < avuiStr()) return false;
+    }
+    if (a.automatic && a.kind === 'review') return false;
+    return true;
+  }).forEach(function(a){ opcions.push({id:a.id, nom:a.nom, color:a.color, grup:'Activitats'}); });
+
+  drop.innerHTML = '';
+  var grupActual = '';
+  opcions.forEach(function(op){
+    if (op.grup !== grupActual){
+      grupActual = op.grup;
+      var g = document.createElement('div');
+      g.style.cssText = 'font-size:10px;font-weight:700;color:#94a3b8;padding:8px 12px 4px;text-transform:uppercase;letter-spacing:.5px';
+      g.textContent = op.grup; drop.appendChild(g);
+    }
+    var item = document.createElement('div');
+    item.style.cssText = 'padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:#1e293b;border-radius:6px;margin:1px 4px';
+    item.innerHTML = '<span style="width:10px;height:10px;border-radius:50%;background:'+op.color+';flex-shrink:0;display:inline-block"></span><span>'+op.nom+'</span>';
+    item.addEventListener('mouseover', function(){ item.style.background = '#f1f5f9'; });
+    item.addEventListener('mouseout',  function(){ item.style.background = 'transparent'; });
+    item.addEventListener('click', function(e){
+      e.stopPropagation();
+      tancarDropAra();
+      ge('ara-sel-txt').textContent = 'Canviar a...';
+      _seleccionarActivitat(op.id);
+    });
+    drop.appendChild(item);
+  });
+  if (!opcions.length)
+    drop.innerHTML = '<div style="padding:12px;color:#94a3b8;font-size:12px;text-align:center">Cap opció disponible</div>';
+}
+
+function tancarDropAra(){ var drop = ge('ara-sel-drop'); if (drop) drop.style.display = 'none'; }
+document.addEventListener('click', function(e){ if (!e.target.closest('#ara-sel-wrap')) tancarDropAra(); });
+ge('ara-sel-btn').addEventListener('click', function(e){
+  e.stopPropagation();
+  var drop = ge('ara-sel-drop');
+  if (drop.style.display === 'block'){
+    tancarDropAra();
+  } else {
+    // Construir sempre de nou en obrir (estat fresc, sense listeners acumulats)
+    var m2 = araMin(), fr2 = frangesDia(avuiStr());
+    var actual2 = null;
+    if (sessioActiva && sessioActiva._manual){
+      actual2 = {activitatId: sessioActiva.activitatId, _manual:true};
+    } else {
+      for (var i=0; i<fr2.length; i++){
+        if (fr2[i]._pla && m2>=hm(fr2[i].ini) && m2<hm(fr2[i].fi)){ actual2=fr2[i]; break; }
+      }
+      if (!actual2) for (var i=0; i<fr2.length; i++){
+        if (!fr2[i]._pla && m2>=hm(fr2[i].ini) && m2<hm(fr2[i].fi)){ actual2=fr2[i]; break; }
+      }
+    }
+    _construirDropdown(actual2);
+    drop.style.display = 'block';
+  }
+});
+
+var _seleccionant = false;
+
+function _seleccionarActivitat(actId){
+  if (!actId || actId === ID_BLANC) return;
+  _seleccionant = true;
+  var act = getAct(actId);
+  var eraEstudi = sessioActiva && sessioActiva._franjaId
+    && S.pla.find(function(b){ return b.id === sessioActiva._franjaId && b.tipus === 'estudi'; });
+  if (eraEstudi && S.modeAval){
+    if (!confirm('⚠️ Estàs canviant un bloc d\'estudi planificat.\nVols que el pla reassigni el temps perdut?')){ _seleccionant=false; return; }
+    if (sessioActiva) _tancarSessio();
+    recalcularPla();
+  } else {
+    if (sessioActiva) _tancarSessio();
+  }
+  sessioActiva = {activitatId:actId, ini:new Date().toTimeString().slice(0,5), _manual:true,
+    _esEstudi:!!S.assignatures.find(function(s){ return s.id === actId; }),
+    _franjaSubjacent: (function(){
+      var m2 = araMin(), fr2 = frangesDia(avuiStr());
+      var bl = fr2.filter(function(f){ return !f._blanc && m2 >= hm(f.ini) && m2 < hm(f.fi); });
+      var f2 = bl.find(function(f){ return f._pla; }) || bl[0] || null;
+      return f2 ? f2.id : null;
+    })()
+  };
+  if (sessioActiva._esEstudi){ _pomodoroIni = Date.now(); _enDescans = false; }
+
+  // Persistir el canvi d'ARA dins l'horari del dia.
+  // Abans només canviava la sessió visual/registre; l'Agenda no ho podia reflectir.
+  var dataAvui = avuiStr();
+  var iniCanvi = sessioActiva.ini;
+  var fiCanvi = (function(){
+    var m3 = araMin(), fr3 = frangesDia(dataAvui);
+    var f3 = fr3.find(function(f){ return !f._blanc && m3 >= hm(f.ini) && m3 < hm(f.fi); });
+    return f3 ? f3.fi : '23:59';
+  })();
+  afegirFranjaManualDia(dataAvui, actId, iniCanvi, fiCanvi);
+
+  desar(); renderAra(); renderAgenda(); _seleccionant = false; avis('Canviat a: '+act.nom+' ✨','ok');
+}
+
+// ─── Auto-inici ────────────────────────────────────────────
+var _ultFranjaAutoId = null;
+function checkAutoInici(){
+  if (!ge('p-ara').classList.contains('on')) return;
+  var avui2 = avuiStr(), m = araMin();
+  var fr = frangesDia(avui2);
+  var blocsActius = fr.filter(function(f){ return !f._blanc && m >= hm(f.ini) && m < hm(f.fi); });
+  var actual = blocsActius.find(function(f){ return f._pla; }) || blocsActius[0] || null;
+
+  // Si hi ha sessió manual activa, comprovar si la franja subjacent ha canviat
+  // Si ha canviat, tancar la sessió manual i deixar que l'auto-inici prengui el control
+  if (sessioActiva && sessioActiva._manual){
+    var franjaActual = actual ? actual.id : null;
+    if (franjaActual && franjaActual !== sessioActiva._franjaSubjacent){
+      // Nova franja al calendari — tancar sessió manual i iniciar nova automàticament
+      _tancarSessio();
+      // Continuar a baix per iniciar la nova franja
+    } else {
+      return; // Sessió manual activa i no ha canviat la franja → no fer res
+    }
+  }
+
+  if (!actual) return;
+  if (_ultFranjaAutoId === actual.id) return;
+  _ultFranjaAutoId = actual.id;
+  if (sessioActiva) _tancarSessio();
+  var esEstudi = actual._pla && !actual._sprint;
+  sessioActiva = {activitatId:actual.activitatId, ini:mh(m), _franjaId:actual.id, _auto:true, _esEstudi:esEstudi};
+  if (esEstudi){ _pomodoroIni = Date.now(); _enDescans = false; _descansFi = null; }
+  else { _pomodoroIni = null; _enDescans = false; }
+  desar(); renderAra();
+  tocarSo('transicio');
+  notificar('🌟 Ara toca: '+getAct(actual.activitatId).nom, getAct(actual.activitatId).nom+' · '+actual.ini+'–'+actual.fi, 'activitat');
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODE REPÒS
+// ═══════════════════════════════════════════════════════════
+var _modeRepos = false;
+function activarModeRepos(){
+  _modeRepos = true;
+  var overlay = ge('repos-overlay'); if (overlay) overlay.style.display = 'flex';
+  var tb = document.querySelector('.tab-bar'); if (tb) tb.style.display = 'none';
+}
+function desactivarModeRepos(){
+  _modeRepos = false;
+  var overlay = ge('repos-overlay'); if (overlay) overlay.style.display = 'none';
+  var tb = document.querySelector('.tab-bar'); if (tb) tb.style.display = 'flex';
+}
+function renderModeRepos(){
+  if (!_modeRepos) return;
+  var avui2 = avuiStr(), m = araMin();
+  var fr = frangesDia(avui2), actual = null;
+  for (var i = 0; i < fr.length; i++){ if (m >= hm(fr[i].ini) && m < hm(fr[i].fi)){ actual = fr[i]; break; } }
+  var el = ge('repos-overlay'); if (!el) return;
+  if (actual){
+    var act = getAct(actual.activitatId), c = colorAct(actual.activitatId);
+    var po = Math.max(0, m - hm(actual.ini)), ps = po*60;
+    var ph = Math.floor(ps/3600), pm2 = Math.floor((ps%3600)/60), pss = ps%60;
+    el.style.background = 'linear-gradient(160deg,'+c+'ee,'+c+'99)';
+    ge('repos-nom').textContent = act.nom;
+    ge('repos-crono').textContent = ph ? ph+':'+String(pm2).padStart(2,'0')+':'+String(pss).padStart(2,'0') : String(pm2).padStart(2,'0')+':'+String(pss).padStart(2,'0');
+    ge('repos-queda').textContent = fmtH(Math.max(0, hm(actual.fi) - m)) + ' restants';
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// AGENDA
+// ═══════════════════════════════════════════════════════════
+var agVista = 'dia', agDia = avuiStr(), agSetIdx = 0;
+
+function calcAgSetIdx(){
+  var sets = setmanesDelCurs(); if (!sets.length) return;
+  var ref = agDia || avuiStr();
+  // Primer buscar la setmana que conté agDia
+  for (var i = 0; i < sets.length; i++){
+    if (sets[i].some(function(d){ return d === ref; })){ agSetIdx = i; return; }
+  }
+  // Si no es troba (fora del curs), buscar la setmana més propera a ref
+  var avui2 = avuiStr();
+  for (var i = 0; i < sets.length; i++){
+    var dies = sets[i].filter(Boolean);
+    if (dies.length && dies[dies.length-1] >= ref){ agSetIdx = i; return; }
+  }
+}
+function renderAgenda(){ calcAgSetIdx(); agVista === 'set' ? renderAgSet() : renderAgDia(); }
+
+function renderAgSet(){
+  ge('v-set').style.display = 'block'; ge('v-dia').style.display = 'none';
+  var sets = setmanesDelCurs();
+  if (!sets.length){
+    ge('set-cos').innerHTML = '<div class="muted" style="text-align:center;padding:20px">Configura el curs acadèmic a Config ⚙️</div>';
+    ge('set-nav').innerHTML = ''; return;
+  }
+  var avui2 = avuiStr(), nav = ge('set-nav'); nav.innerHTML = '';
+  sets.forEach(function(set, idx){
+    var dies = set.filter(Boolean); if (!dies.length) return;
+    var dO = new Date(dies[0]+'T12:00');
+    var btn = document.createElement('button');
+    btn.className = 'dia-tab' + (agSetIdx === idx ? ' on' : '');
+    btn.textContent = 'S'+(idx+1)+' '+String(dO.getDate()).padStart(2,'0')+'/'+String(dO.getMonth()+1).padStart(2,'0');
+    btn.addEventListener('click', function(){ agSetIdx = idx; renderAgSet(); });
+    nav.appendChild(btn);
+  });
+  // Scroll fins al botó actiu
+  var btnActiu = nav.querySelector('.dia-tab.on');
+  if (btnActiu) btnActiu.scrollIntoView({block:'nearest', inline:'center', behavior:'smooth'});
+  renderCalSet(ge('set-cos'), sets[agSetIdx]||[], avui2);
+}
+
+function renderAgDia(){
+  ge('v-set').style.display = 'none'; ge('v-dia').style.display = 'block';
+  var avui2 = avuiStr(), dow = new Date(agDia+'T12:00').getDay();
+  var dlOff = dow === 0 ? -6 : 1 - dow;
+  var dies = [];
+  for (var i = 0; i < 7; i++){
+    var d = new Date(agDia+'T12:00'); d.setDate(d.getDate()+dlOff+i);
+    dies.push(d.toISOString().split('T')[0]);
+  }
+  var nav = ge('dia-nav'); nav.innerHTML = '';
+  dies.forEach(function(dia){
+    var dO = new Date(dia+'T12:00');
+    var btn = document.createElement('button');
+    btn.className = 'dia-tab'+(agDia===dia?' on':'')+(dia===avui2?' avui':'')+(dia<avui2?' passat':'');
+    btn.style.cssText = 'font-size:11px;padding:5px 2px;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%';
+    btn.textContent = DIES_C[diaEU(dia)] + ' ' + String(dO.getDate()).padStart(2,'0');
+    btn.addEventListener('click', function(){ agDia = dia; renderAgDia(); });
+    nav.appendChild(btn);
+  });
+  ge('dia-titol').textContent = new Date(agDia+'T12:00').toLocaleDateString('ca-ES',{weekday:'long',day:'numeric',month:'long'});
+  renderCal(ge('cal-dia-c'), ge('cal-dia-h'), frangesDia(agDia), 1920, agDia, true);
+}
+
+// ═══════════════════════════════════════════════════════════
+// CONFIG — RENDER
+// ═══════════════════════════════════════════════════════════
+var patroDia = 0;
+function renderCfg(){
+  ge('cfg-nom').value = S.config.nomAlumna || '';
+  ge('cfg-avatar-custom').value = S.config.avatarEmoji || '🎓';
+  ge('cfg-app-url').value = S.config.appUrl || '';
+  ge('cfg-ini').value = S.config.cursIni || '';
+  ge('cfg-fi').value = S.config.cursFi || '';
+  // Grid emojis
+  var emojis = ['🦊','🐱','🐶','🦄','🌸','🎮','⭐','🦋','🌈','🎵','🐼','🐨','🦁','🐯','🐸','🍀','🌻','🍕','🎸','🏆'];
+  var grid = ge('cfg-avatar-grid'); grid.innerHTML = '';
+  var avatarActual = S.config.avatarEmoji || '🎓';
+  emojis.forEach(function(e){
+    var btn = document.createElement('button');
+    var sel = avatarActual === e;
+    btn.style.cssText = 'font-size:24px;background:'+(sel?'#ede9fe':'#f8fafc')+';border:2px solid '+(sel?'#818cf8':'#e2e8f0')+';border-radius:10px;width:44px;height:44px;cursor:pointer;transition:all .15s';
+    btn.textContent = e;
+    btn.addEventListener('click', function(){
+      grid.querySelectorAll('button').forEach(function(b){ b.style.background='#f8fafc'; b.style.borderColor='#e2e8f0'; });
+      btn.style.background = '#ede9fe'; btn.style.borderColor = '#818cf8';
+      ge('cfg-avatar-custom').value = e;
+    });
+    grid.appendChild(btn);
+  });
+  if (S.config.appUrl){ ge('cfg-qr-wrap').style.display='block'; generarQR(S.config.appUrl); }
+  else ge('cfg-qr-wrap').style.display = 'none';
+  ge('cfg-sprint').value = S.config.sprintHores || 1.5;
+  ge('cfg-nom-blanc').value = S.config.nomBlanc || NOM_BLANC_DEF;
+  ge('cfg-min-sessio').value = S.config.minSessio || 90;
+  ge('cfg-pomodoro').value = S.config.pomodoroMin || 45;
+  ge('cfg-descans').value = S.config.descansMin || 10;
+  renderVacances(); renderAsig(); renderActs(); renderPatro();
+}
+
+// ─── Vacances ──────────────────────────────────────────────
+function renderVacances(){
+  var el = ge('cfg-vacances'); if (!el) return; el.innerHTML = '';
+  if (!(S.vacances||[]).length){
+    el.innerHTML = '<div class="muted small" style="padding:4px 0">Cap període de vacances.</div>'; return;
+  }
+  S.vacances.forEach(function(v){
+    var div = document.createElement('div'); div.className = 'fila';
+    div.innerHTML = '<span style="font-size:16px">🏖</span>'
+      + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#334155">'+v.nom+'</div>'
+      + '<div class="small">'+v.ini+' – '+v.fi+'</div></div>';
+    var bE = document.createElement('button'); bE.className = 'btn'; bE.style.cssText = 'font-size:11px;padding:4px 8px;margin-right:4px';
+    bE.textContent = 'Editar'; bE.addEventListener('click', function(){ obrirModalVacanca(v.id); });
+    var bD2 = document.createElement('button'); bD2.className = 'btn-d'; bD2.style.cssText = 'font-size:11px;padding:4px 8px';
+    bD2.textContent = '✕'; bD2.addEventListener('click', function(){ S.vacances = S.vacances.filter(function(x){ return x.id !== v.id; }); desar(); renderVacances(); });
+    div.appendChild(bE); div.appendChild(bD2); el.appendChild(div);
+  });
+}
+
+function obrirModalVacanca(editId){
+  var vEdit = editId ? S.vacances.find(function(x){ return x.id === editId; }) : null;
+  obrir('<h3 style="margin-bottom:12px">'+(vEdit?'Editar':'Nou')+' període de vacances 🏖</h3>'
+    + '<label>Nom</label><input type="text" id="v-nom" value="'+(vEdit?vEdit.nom:'')+'" placeholder="Nadal 🎄">'
+    + '<label>Data inici</label><input type="date" id="v-ini" value="'+(vEdit?vEdit.ini:'')+'">'
+    + '<label>Data fi</label><input type="date" id="v-fi" value="'+(vEdit?vEdit.fi:'')+'">'
+    + '<div class="row-btns" id="mb"></div>');
+  var bts = ge('mb');
+  var bD3 = document.createElement('button'); bD3.className = 'btn-p'; bD3.textContent = vEdit ? 'Desar ✅' : 'Afegir ✅';
+  bD3.addEventListener('click', function(){
+    var nom = ge('v-nom').value.trim(), ini = ge('v-ini').value, fi2 = ge('v-fi').value;
+    if (!nom||!ini||!fi2){ avis('Omple tots els camps.','warn'); return; }
+    if (fi2 < ini){ avis('La data fi ha de ser posterior a l\'inici.','warn'); return; }
+    if (!S.vacances) S.vacances = [];
+    if (vEdit){ vEdit.nom=nom; vEdit.ini=ini; vEdit.fi=fi2; }
+    else S.vacances.push({id:uid(), nom:nom, ini:ini, fi:fi2});
+    S.vacances.sort(function(a,b){ return a.ini.localeCompare(b.ini); });
+    desar(); tancar(); renderVacances(); avis(vEdit?'Vacances actualitzades!':'Vacances afegides! 🏖','ok');
+  }); bts.appendChild(bD3);
+  var bC = document.createElement('button'); bC.className = 'btn'; bC.textContent = 'Cancel·lar'; bC.addEventListener('click', tancar); bts.appendChild(bC);
+}
+
+// ─── Assignatures ──────────────────────────────────────────
+function renderAsig(){
+  var el = ge('cfg-asig'); el.innerHTML = '';
+  if (!S.assignatures.length){
+    el.innerHTML = '<div class="muted" style="padding:8px 0;font-size:12px">Cap assignatura. Afegeix-ne una! 📚</div>'; return;
+  }
+  S.assignatures.forEach(function(s){
+    var nHores = Object.values(s.horari||{}).filter(function(h){ return h&&h.ini&&h.fi; }).length;
+    var div = document.createElement('div'); div.className = 'fila';
+    div.innerHTML = '<span class="dot" style="background:'+s.color+'"></span>'
+      + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#334155">'+s.nom+'</div>'
+      + (nHores ? '<div class="small">'+nHores+' franges setmanals</div>'
+                : '<div class="small" style="color:#f59e0b">Sense horari de classes</div>')
+      + '</div>';
+    var bH = document.createElement('button'); bH.className = 'btn-p'; bH.style.cssText = 'font-size:11px;padding:4px 10px;margin-right:4px';
+    bH.textContent = '📅 Horari'; bH.addEventListener('click', function(){ obrirModalHorariAsig(s.id); }); div.appendChild(bH);
+    var bE = document.createElement('button'); bE.className = 'btn'; bE.style.cssText = 'font-size:11px;padding:4px 10px';
+    bE.textContent = 'Editar'; bE.addEventListener('click', function(){ obrirModalAsig(s.id); }); div.appendChild(bE);
+    el.appendChild(div);
+  });
+}
+
+function obrirModalHorariAsig(sid){
+  var s = S.assignatures.find(function(x){ return x.id === sid; }); if (!s) return;
+  if (!s.horari) s.horari = {};
+  // Migrar format antic {ini,fi} a [{ini,fi}]
+  DIES.forEach(function(dia, i){
+    if (s.horari[i] && !Array.isArray(s.horari[i])) s.horari[i] = [s.horari[i]];
+  });
+
+  function renderHtml(){
+    var html = '<h3 style="margin-bottom:4px">Horari de classes</h3>'
+      + '<div style="font-size:13px;font-weight:700;color:'+s.color+';margin-bottom:14px">'+s.nom+'</div>';
+    DIES.forEach(function(dia, i){
+      var franges = s.horari[i] || [];
+      html += '<div style="margin-bottom:10px">'
+        + '<div style="font-size:12px;font-weight:700;color:#64748b;margin-bottom:4px">'+DIES_C[i]+'</div>';
+      franges.forEach(function(h, j){
+        html += '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">'
+          + '<input type="time" id="h-ini-'+i+'-'+j+'" value="'+(h.ini||'')+'" style="flex:1;margin:0">'
+          + '<span style="color:#94a3b8;font-size:12px">–</span>'
+          + '<input type="time" id="h-fi-'+i+'-'+j+'" value="'+(h.fi||'')+'" style="flex:1;margin:0">'
+          + '<button class="btn-d" style="font-size:11px;padding:3px 7px" data-dia="'+i+'" data-j="'+j+'" data-action="del">✕</button>'
+          + '</div>';
+      });
+      html += '<button class="btn" style="font-size:11px;padding:3px 10px;margin-top:2px" data-dia="'+i+'" data-action="add">+ Franja</button>'
+        + '</div>';
+    });
+    html += '<div class="row-btns" id="mb"></div>';
+    return html;
+  }
+
+  function obrirAmbHtml(){
+    obrir(renderHtml());
+    ge('modal-cos').addEventListener('click', function(e){
+      var btn = e.target.closest('[data-action]'); if (!btn) return;
+      var dia = parseInt(btn.dataset.dia);
+      if (btn.dataset.action === 'add'){
+        if (!s.horari[dia]) s.horari[dia] = [];
+        s.horari[dia].push({ini:'', fi:''});
+        obrir(renderHtml()); obrirAmbListeners();
+      } else if (btn.dataset.action === 'del'){
+        var j = parseInt(btn.dataset.j);
+        s.horari[dia].splice(j, 1);
+        obrir(renderHtml()); obrirAmbListeners();
+      }
+    });
+    obrirAmbListeners();
+  }
+
+  function obrirAmbListeners(){
+    var bts = ge('mb');
+    var bD3 = document.createElement('button'); bD3.className = 'btn-p'; bD3.textContent = 'Desar ✅';
+    bD3.addEventListener('click', function(){
+      DIES.forEach(function(dia, i){
+        var franges = s.horari[i] || [];
+        var noves = [];
+        franges.forEach(function(h, j){
+          var ini = (ge('h-ini-'+i+'-'+j)||{}).value;
+          var fi2 = (ge('h-fi-'+i+'-'+j)||{}).value;
+          if (ini && fi2) noves.push({ini:ini, fi:fi2});
+        });
+        if (noves.length) s.horari[i] = noves;
+        else delete s.horari[i];
+      });
+      desar(); tancar(); renderAsig(); avis('Horari desat! ✅','ok');
+    }); bts.appendChild(bD3);
+    var bC = document.createElement('button'); bC.className = 'btn'; bC.textContent = 'Cancel·lar'; bC.addEventListener('click', tancar); bts.appendChild(bC);
+  }
+
+  obrirAmbHtml();
+}
+
+function obrirModalAsig(id){
+  var s = id ? S.assignatures.find(function(x){ return x.id === id; }) : null;
+  obrir('<h3 style="margin-bottom:12px">'+(s?'Editar':'Nova')+' assignatura 📚</h3>'
+    + '<label>Nom</label><input type="text" id="m-nom" value="'+(s?s.nom:'')+'" placeholder="Ex: Matemàtiques...">'
+    + '<label>Color</label><input type="color" id="m-color" value="'+(s?s.color:'#6366f1')+'" style="height:44px;cursor:pointer">'
+    + '<div class="row-btns" id="mb"></div>');
+  var bts = ge('mb');
+  var bD3 = document.createElement('button'); bD3.className = 'btn-p'; bD3.textContent = 'Desar ✅';
+  bD3.addEventListener('click', function(){
+    var nom = ge('m-nom').value.trim(), color = ge('m-color').value;
+    if (!nom){ avis('Cal un nom.','warn'); return; }
+    if (id){ var as = S.assignatures.find(function(x){ return x.id === id; }); if (as){ as.nom=nom; as.color=color; } }
+    else S.assignatures.push({id:'s-'+uid(), nom:nom, color:color, horari:{}});
+    desar(); tancar(); renderAsig(); avis('Assignatura desada! ✅','ok');
+  }); bts.appendChild(bD3);
+  if (id){
+    var bEl = document.createElement('button'); bEl.className = 'btn-d'; bEl.textContent = 'Eliminar';
+    bEl.addEventListener('click', function(){
+      if (S.examens.some(function(e){ return e.subjectId === id; })){ avis('Primer elimina els exàmens.','warn'); return; }
+      S.assignatures = S.assignatures.filter(function(x){ return x.id !== id; });
+      desar(); tancar(); renderAsig();
+    }); bts.appendChild(bEl);
+  }
+  var bC = document.createElement('button'); bC.className = 'btn'; bC.textContent = 'Cancel·lar'; bC.addEventListener('click', tancar); bts.appendChild(bC);
+}
+
+// ─── Activitats ────────────────────────────────────────────
+function renderActs(){
+  var el = ge('cfg-acts'); el.innerHTML = '';
+  // act-cole i act-estudi NO apareixen
+  S.activitats.filter(function(a){ return a.active !== false && a.id !== ID_BLANC && a.id !== 'act-cole'; }).forEach(function(act){
+    var div = document.createElement('div'); div.className = 'fila';
+    div.innerHTML = '<span class="dot" style="background:'+act.color+'"></span>'
+      + '<div style="flex:1;min-width:0"><div style="font-size:13px;font-weight:700;color:#334155">'+act.nom
+      + (act.fixe ? ' <span class="pill p-muted" style="font-size:10px">Fixe</span>' : '') + (act.automatic ? ' <span class="pill p-blue" style="font-size:10px">Auto</span>' : '') + '</div></div>';
+    var b = document.createElement('button'); b.className = 'btn'; b.style.cssText = 'font-size:11px;padding:4px 10px';
+    b.textContent = 'Editar'; b.addEventListener('click', function(){ obrirModalAct(act.id); }); div.appendChild(b);
+    el.appendChild(div);
+  });
+}
+
+function obrirModalAct(id){
+  var act = id ? S.activitats.find(function(x){ return x.id === id; }) : null;
+  var fixe = act ? !!act.fixe : false;
+  obrir('<h3 style="margin-bottom:12px">'+(act?'Editar':'Nova')+' activitat 🎯</h3>'
+    + '<label>Nom</label><input type="text" id="m-nom" value="'+(act?act.nom:'')+'" placeholder="Ex: Bàsquet 🏀">'
+    + '<label>Color</label><input type="color" id="m-color" value="'+(act?act.color:'#22c55e')+'" style="height:44px;cursor:pointer">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-top:1px solid #f1f5f9;margin-top:6px">'
+    + '<div><div style="font-size:13px;font-weight:700;color:#334155">Activitat fixe</div>'
+    + '<div class="small">No s\'elimina per fer espai d\'estudi</div></div>'
+    + '<input type="checkbox" id="m-fixe"'+(fixe?' checked':'')+' style="width:auto;margin:0;transform:scale(1.5)">'
+    + '</div><div class="row-btns" id="mb"></div>');
+  var bts = ge('mb');
+  var bD3 = document.createElement('button'); bD3.className = 'btn-p'; bD3.textContent = 'Desar ✅';
+  bD3.addEventListener('click', function(){
+    var nom = ge('m-nom').value.trim(), color = ge('m-color').value, fx = ge('m-fixe').checked;
+    if (!nom){ avis('Cal un nom.','warn'); return; }
+    if (id){ var a = S.activitats.find(function(x){ return x.id === id; }); if(a){ a.nom=nom; a.color=color; a.fixe=fx; } }
+    else S.activitats.push({id:'act-'+uid(), nom:nom, color:color, fixe:fx, familiaId:fx?'f-descans':'f-personal'});
+    desar(); tancar(); renderActs(); avis('Activitat desada! ✅','ok');
+  }); bts.appendChild(bD3);
+  if (id){
+    var bEl = document.createElement('button'); bEl.className = 'btn-d'; bEl.textContent = 'Eliminar';
+    bEl.addEventListener('click', function(){
+      S.activitats = S.activitats.filter(function(a){ return a.id !== id; });
+      desar(); tancar(); renderActs();
+    }); bts.appendChild(bEl);
+  }
+  var bC = document.createElement('button'); bC.className = 'btn'; bC.textContent = 'Cancel·lar'; bC.addEventListener('click', tancar); bts.appendChild(bC);
+}
+
+// ─── Patró setmanal ────────────────────────────────────────
+function renderPatro(){
+  var nav = ge('patro-nav'); nav.innerHTML = '';
+  DIES_C.forEach(function(d, i){
+    var b = document.createElement('button'); b.className = 'dia-tab' + (patroDia === i ? ' on' : '');
+    b.textContent = d; b.addEventListener('click', function(){ patroDia = i; renderPatro(); }); nav.appendChild(b);
+  });
+  ge('patro-dia-nom').textContent = DIES[patroDia];
+  netejarPatroConfiguracio();
+  var base = S.patro[patroDia] || [];
+  var proc = base.slice().filter(esFranjaConfiguracioValida).sort(function(a, b){ return hm(a.ini) - hm(b.ini); });
+  // Substituir cole per assignatures
+  var asigAvui = S.assignatures.filter(function(s){
+    var h = s.horari && s.horari[patroDia];
+    if (!h) return false;
+    if (Array.isArray(h)) return h.some(function(f){ return f.ini && f.fi; });
+    return h.ini && h.fi;
+  });
+  var procNet = proc.filter(function(f){ return f.activitatId !== 'act-cole' && esFranjaConfiguracioValida(f); });
+  asigAvui.forEach(function(s){
+    var h = s.horari[patroDia];
+    var franges = Array.isArray(h) ? h : [h];
+    franges.forEach(function(f, j){
+      if (f && f.ini && f.fi)
+        procNet.push({id:'hc-'+s.id+'-'+patroDia+'-'+j, activitatId:s.id, ini:f.ini, fi:f.fi, _horariCole:true});
+    });
+  });
+  procNet.sort(function(a, b){ return hm(a.ini) - hm(b.ini); });
+  var ambBlancs = [], cur = 0;
+  procNet.forEach(function(f){
+    var ini = hm(f.ini), fi2 = hm(f.fi); if (fi2 <= ini) return;
+    if (ini > cur) ambBlancs.push({id:'b'+cur, activitatId:ID_BLANC, ini:mh(cur), fi:f.ini, _blanc:true});
+    ambBlancs.push(f); cur = fi2;
+  });
+  if (cur < 1440) ambBlancs.push({id:'bend', activitatId:ID_BLANC, ini:mh(cur), fi:'23:59', _blanc:true});
+  // IMPORTANT: el configurador no usa els handlers d'agenda.
+  // Només mostra i edita patró base; l'estudi generat viu a l'Agenda.
+  renderCal(ge('cal-patro-c'), ge('cal-patro-h'), ambBlancs, 1920, null, false);
+  ge('cal-patro-c').querySelectorAll('.cal-bloc').forEach(function(el){
+    el.addEventListener('click', function(e){
+      e.stopPropagation();
+      if (el.dataset.blanc === '1') obrirModalFranjaPatro(el.dataset.ini, el.dataset.fi);
+      else obrirModalEditFranjaPatro(el.dataset.fid);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// AVALUACIÓ — RENDER
+// ═══════════════════════════════════════════════════════════
+function renderAval(){
+  ge('aval-off').style.display = S.modeAval ? 'none' : 'block';
+  ge('aval-on').style.display  = S.modeAval ? 'block' : 'none';
+  ge('aval-pill').innerHTML = S.modeAval
+    ? '<span class="pill p-blue">Actiu ✨</span>'
+    : '<span class="pill p-muted">Inactiu</span>';
+  if (!S.modeAval) return;
+
+  var avui2 = avuiStr();
+  var exOrdFuturs = S.examens.filter(function(e){ return e.data >= avui2; });
+  var tePla = S.pla.filter(function(b){ return !b.fet; }).length > 0;
+  ge('aval-p1').style.display = 'block';
+
+  // Si no hi ha exàmens futurs, netejar distribució i pla
+  if (!exOrdFuturs.length){
+    ge('aval-p2').style.display = 'none';
+    ge('aval-resum').style.display = 'none';
+    var ds = ge('d-sliders'); if (ds) ds.innerHTML = '';
+    var pb = ge('pla-blocs'); if (pb) pb.innerHTML = '';
+    var pa = ge('pla-asig'); if (pa) pa.innerHTML = '';
+  } else {
+    ge('aval-p2').style.display = 'none';
+    ge('aval-resum').style.display = tePla ? 'block' : 'none';
+  }
+
+  var ll = ge('exam-llista'); ll.innerHTML = '';
+  var exOrd = S.examens.slice().sort(function(a, b){ return a.data.localeCompare(b.data); });
+  if (!exOrd.length){
+    ll.innerHTML = '<div class="muted" style="text-align:center;padding:12px">Afegeix els teus exàmens! 📝</div>';
+  } else {
+    exOrd.forEach(function(e){
+      var s = S.assignatures.find(function(x){ return x.id === e.subjectId; });
+      var dies = diasEntre(avui2, e.data);
+      var urgent = dies <= 2, proper = dies <= 7 && !urgent, passat = dies < 0;
+      var kind = v9AcademicKind(e), esEntrega = kind !== 'exam';
+      var div = document.createElement('div');
+      div.className = 'exam-row' + (urgent?' urgent':proper?' proper':'');
+      div.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center">'
+        + '<div><div style="font-weight:800;font-size:14px;color:'+(s?s.color:'#334155')+'">'
+        + v9KindIcon(kind)+' ' + (s?s.nom:'?') + ' · ' + v9ProjectTitle(e) + '</div>'
+        + '<div class="small">'+v9KindLabel(kind)+' · '+v9ScopeLabel(v9AcademicScope(e))+' · '+e.data+' · '+e.hora+'</div></div>'
+        + '<span class="pill '+(passat?'p-muted':urgent?'p-bad':proper?'p-warn':'p-blue')+'">'
+        + (passat?'Passat':dies===0?'Avui! 😬':dies===1?'Demà! 😱':dies+'d 📅')+'</span>'
+        + '</div>';
+      div.addEventListener('click', function(){ obrirModalExamen(e.id); });
+      ll.appendChild(div);
+    });
+  }
+  if (tePla) renderPla();
+}
+
+// ─── Distribució ───────────────────────────────────────────
+function esFranjaDisponible(f, dataStr){
+  // V9: buit visual no equival automàticament a disponibilitat validada.
+  if (!(f && f._blanc && !f._pla)) return false;
+  if (v9IsManualReleaseBlocking(dataStr, f.ini, f.fi)) return false;
+  v9RegisterEmptyAvailability(dataStr, f);
+  return true;
+}
+
+function calcTempsDisp(){
+  var avui2 = avuiStr();
+  var deadline = ultimDeadline();
+  if (!deadline) return 0;
+  var total = 0;
+  var d = new Date(avui2+'T00:00');
+  while (d.toISOString().split('T')[0] <= deadline.data){
+    var ds = d.toISOString().split('T')[0];
+    var minIni = minIniPlanificable(ds);
+    var minFi = ds === deadline.data ? deadline.min : 1440;
+    frangesDia(ds).forEach(function(f){
+      if (!esFranjaDisponible(f, ds)) return;
+      var lf = limitFranja(f, ds, minIni, minFi);
+      if (lf) total += durMin(lf.ini, lf.fi);
+    });
+    d.setDate(d.getDate()+1);
+  }
+  return total;
+}
+
+function actualitzarSliders(exOrd, totalDisp){
+  var cont = ge('d-sliders'); if (!cont) return;
+  var sprintT = 0;
+  exOrd.forEach(function(ex){
+    var pes = ex.pes||0, tT = Math.round(totalDisp*pes/100);
+    var tSp = Math.round((ex.sprintHores||S.config.sprintHores||1.5)*60), tEst = Math.max(0, tT-tSp);
+    sprintT += tSp;
+    var s = S.assignatures.find(function(x){ return x.id === ex.subjectId; }), c = s?s.color:'#6366f1';
+    var sl = cont.querySelector('input[data-exid="'+ex.id+'"]'); if (!sl) return;
+    sl.value = pes; sl.style.background = 'linear-gradient(to right,'+c+' '+pes+'%,#e2e8f0 '+pes+'%)';
+    var wrap = sl.closest('.sl-wrap'); if (!wrap) return;
+    var pEl = wrap.querySelector('.sl-pct'); if (pEl){ pEl.textContent=pes+'%'; pEl.style.color=c; }
+    var hEl = wrap.querySelector('.sl-hores'); if (hEl) hEl.innerHTML = '<span>📚 Estudi '+fmtH(tEst)+'</span><span>⚡ Sprint '+fmtH(tSp)+'</span><span style="font-weight:700;color:#334155">📊 Total '+fmtH(tT)+'</span>';
+  });
+  var sum = exOrd.reduce(function(s, e){ return s+(e.pes||0); }, 0);
+  var pEl = ge('d-total-pct'); if (pEl){ pEl.textContent=sum+'%'; pEl.style.color=sum===100?'#22c55e':'#ef4444'; }
+  var bEl = ge('d-total-bar'); if (bEl){ bEl.style.width=Math.min(100,sum)+'%'; bEl.style.background=sum===100?'#22c55e':'#ef4444'; }
+  var dd=ge('d-disp'); if(dd) dd.textContent=fmtH(totalDisp);
+  var ds=ge('d-sprint'); if(ds) ds.textContent=fmtH(sprintT);
+  var de=ge('d-estudi'); if(de) de.textContent=fmtH(totalDisp-sprintT);
+}
+
+function renderDistribucio(){
+  ensureV9State();
+  var avui2 = avuiStr();
+  var exOrd = S.examens.filter(function(e){ return e.data >= avui2; }).sort(function(a, b){ return a.data.localeCompare(b.data); });
+  if (!exOrd.length) return;
+  v9SyncExamTasks(exOrd);
+  var totalDisp = calcTempsDisp();
+  var cont = ge('d-sliders'); cont.innerHTML = '';
+
+  var cfg = document.createElement('div'); cfg.className = 'card';
+  var diagPctUi = Math.max(10, Math.min(70, Number(S.config.diagnosticPct == null ? 40 : S.config.diagnosticPct)));
+  S.config.diagnosticPct = diagPctUi;
+  S.config.faseDiagnosticPct = diagPctUi;
+  cfg.innerHTML = '<h3>Configuració del pla v9</h3>'
+    + '<div style="margin-top:4px;padding:12px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0">'
+    + '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">'
+    + '<strong style="font-size:12px;color:#334155">Fases d’estudi</strong>'
+    + '<span id="fase-pct-label" style="font-size:12px;font-weight:800;color:#6366f1">'+diagPctUi+'% / '+(100-diagPctUi)+'%</span>'
+    + '</div>'
+    + '<div style="display:flex;justify-content:space-between;font-size:11px;color:#64748b;margin-bottom:6px">'
+    + '<span>Diagnòstic inicial</span><span>Estudi compactat</span></div>'
+    + '<input id="fase-diagnostic-range" type="range" min="10" max="70" step="5" value="'+diagPctUi+'">'
+    + '<div class="prog-bar" style="margin-top:8px;display:flex;overflow:hidden">'
+    + '<div id="fase-diagnostic-bar" style="height:100%;width:'+diagPctUi+'%;background:#38bdf8"></div>'
+    + '<div id="fase-compactat-bar" style="height:100%;width:'+(100-diagPctUi)+'%;background:#818cf8"></div>'
+    + '</div></div>'
+    + '<div class="small" style="margin-top:8px">La barra reparteix només l’estudi net: diagnòstic inicial cap endavant i estudi compactat cap enrere. L’sprint continua separat.</div>'
+    + '<div class="small" style="margin-top:8px">Les barres de les assignatures poden quedar per sota del 100%. El temps sobrant queda lliure i no se l’emporta l’última assignatura.</div>';
+  cont.appendChild(cfg);
+  function pintarFaseSlider(){
+    var pct = Math.max(10, Math.min(70, Number(S.config.diagnosticPct == null ? 40 : S.config.diagnosticPct)));
+    var label = ge('fase-pct-label'), bDiag = ge('fase-diagnostic-bar'), bComp = ge('fase-compactat-bar'), input = ge('fase-diagnostic-range');
+    if (input) input.value = pct;
+    if (label) label.textContent = pct + '% / ' + (100 - pct) + '%';
+    if (bDiag) bDiag.style.width = pct + '%';
+    if (bComp) bComp.style.width = (100 - pct) + '%';
+  }
+  var faseInput = cfg.querySelector('#fase-diagnostic-range');
+  faseInput.addEventListener('input', function(){
+    S.config.diagnosticPct = Math.max(10, Math.min(70, Number(this.value)||40));
+    S.config.faseDiagnosticPct = S.config.diagnosticPct;
+    pintarFaseSlider();
+  });
+  faseInput.addEventListener('change', function(){ desar(); renderDistribucio(); });
+
+  // Inicialització: repartir per igual el 100% disponible, però sense tornar a forçar-ho després.
+  var calInicialitzar = exOrd.some(function(ex){ return ex.pes == null; });
+  if (calInicialitzar){
+    var base = Math.floor(100 / exOrd.length);
+    var resta = 100 - base * exOrd.length;
+    exOrd.forEach(function(ex, idx){
+      if (ex.pes == null) ex.pes = base + (idx < resta ? 1 : 0);
+    });
+  }
+
+  function syncTargetFromPercent(ex){
+    var assignedTotal = Math.round(totalDisp * Math.max(0, Number(ex.pes||0)) / 100);
+    var sprintMin = v9SprintMinutes(ex);
+    var mainMin = Math.max(0, assignedTotal - sprintMin);
+    ex.targetMinutes = mainMin;
+    ex.horesEstudi = Math.round((mainMin/60)*100)/100;
+    var project = v9EnsureProjectForExam(ex);
+    var mainKind = v9MainTaskKind(ex);
+    var mainTask = v9EnsureTask(project, ex.subjectId, mainKind, mainMin, 1);
+    var reviewTask = v9EnsureTask(project, ex.subjectId, 'review', sprintMin, 0);
+    ex.mainTaskId = mainTask.id;
+    ex.reviewTaskId = reviewTask.id;
+    var aMain = v9CreateGeneratedActivity(ex.subjectId, project.id, mainTask.id, mainKind);
+    var aReview = v9CreateGeneratedActivity(ex.subjectId, project.id, reviewTask.id, 'review');
+    ex.mainActivityId = aMain.id;
+    ex.reviewActivityId = aReview.id;
+    return { assignedTotal:assignedTotal, sprintMin:sprintMin, mainMin:mainMin, mainKind:mainKind };
+  }
+
+  var totalDemand = 0, sprintT = 0;
+  exOrd.forEach(function(ex, idx){
+    var s = S.assignatures.find(function(x){ return x.id === ex.subjectId; });
+    var c = s?s.color:'#6366f1';
+    var vals = syncTargetFromPercent(ex);
+    totalDemand += vals.mainMin + vals.sprintMin;
+    sprintT += vals.sprintMin;
+    var wrap = document.createElement('div'); wrap.className = 'sl-wrap';
+    wrap.innerHTML = '<div class="sl-row">'
+      + '<span class="sl-nom" style="color:'+c+'">'+(s?s.nom:'?')+' · '+v9ProjectTitle(ex)+'</span>'
+      + '<span class="sl-pct" style="color:'+c+'">'+(ex.pes||0)+'%</span>'
+      + '</div>'
+      + '<input type="range" min="0" max="100" step="1" data-exid="'+ex.id+'" value="'+(ex.pes||0)+'">'
+      + '<div class="sl-hores"><span>'+(vals.mainKind==='study'?'📚 Estudi ':'✏️ '+v9MainTaskLabel(ex)+' ')+fmtH(vals.mainMin)+'</span><span>⚡ Sprint '+fmtH(vals.sprintMin)+'</span><span style="font-weight:700;color:#334155">📊 Total '+fmtH(vals.mainMin+vals.sprintMin)+'</span></div>';
+    cont.appendChild(wrap);
+    var input = wrap.querySelector('input[type=range]');
+    input.style.background = 'linear-gradient(to right,'+c+' '+(ex.pes||0)+'%,#e2e8f0 '+(ex.pes||0)+'%)';
+    input.addEventListener('input', function(){
+      ex.pes = Math.max(0, Math.min(100, Number(this.value)||0));
+      // Canviar una barra NO redistribueix automàticament la resta.
+      // Això evita que l\'última assignatura absorbeixi el temps no consumit.
+      syncTargetFromPercent(ex);
+      desar(); renderDistribucio();
+    });
+  });
+
+  var sum = exOrd.reduce(function(s, e){ return s + Math.max(0, Number(e.pes||0)); }, 0);
+  var pEl = ge('d-total-pct');
+  if (pEl){
+    pEl.textContent = sum + '%';
+    pEl.style.color = sum <= 100 ? '#22c55e' : '#ef4444';
+  }
+  var bEl = ge('d-total-bar');
+  if (bEl){
+    bEl.style.width = Math.min(100, sum) + '%';
+    bEl.style.background = sum <= 100 ? '#22c55e' : '#ef4444';
+  }
+  var dd=ge('d-disp'); if(dd) dd.textContent=fmtH(totalDisp);
+  var ds=ge('d-sprint'); if(ds) ds.textContent=fmtH(sprintT);
+  var de=ge('d-estudi'); if(de) de.textContent=fmtH(Math.max(0, totalDemand-sprintT));
+
+  var info = document.createElement('div'); info.className = 'card';
+  var cls = totalDemand <= totalDisp ? 'p-ok' : 'p-bad';
+  info.innerHTML = '<h3>Validació</h3>'
+    + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
+    + '<span class="pill '+cls+'">Demanda total: '+fmtH(totalDemand)+'</span>'
+    + '<span class="pill p-blue">Disponible: '+fmtH(totalDisp)+'</span>'
+    + (totalDemand > totalDisp ? '<span class="pill p-bad">Falten '+fmtH(totalDemand-totalDisp)+'</span>' : '<span class="pill p-ok">Sobraran '+fmtH(totalDisp-totalDemand)+'</span>')
+    + '</div><div class="small" style="margin-top:8px">El sobrant queda lliure. Cap assignatura rep automàticament el que no han consumit les anteriors.</div>';
+  cont.appendChild(info);
+  desar();
+}
+
+// ─── Motor pla ─────────────────────────────────────────────
+function calcularPla(){
+  ensureV9State();
+  var avui2 = avuiStr();
+  var exOrd = S.examens.filter(function(e){ return e.data >= avui2; }).sort(function(a, b){ return (a.data+'T'+(a.hora||'23:59')).localeCompare(b.data+'T'+(b.hora||'23:59')); });
+  if (!exOrd.length){ avis('Afegeix exàmens futurs.','warn'); return; }
+  v9SyncExamTasks(exOrd);
+  var totalDemand = exOrd.reduce(function(t, ex){ return t + v9TargetStudyMinutes(ex) + v9SprintMinutes(ex); }, 0);
+  var totalDisp = calcTempsDisp();
+  if (totalDemand > totalDisp){
+    avis('Falten '+fmtH(totalDemand-totalDisp)+' per complir tots els objectius. Revisa hores o disponibilitat.','warn');
+  }
+  v9StartPlan('full_recalculate');
+  S.pla = S.pla.filter(function(b){ return b.fet || b.status === 'done'; });
+  _calcularBlocs(exOrd);
+  v9RecomputeTaskStats();
+  desar();
+  ge('aval-p2').style.display = 'none'; ge('aval-resum').style.display = 'block';
+  renderAval(); renderPla(); avis('Pla creat amb demanda explícita! 🚀','ok');
+}
+
+function recalcularPla(){
+  if (!S.modeAval || !S.examens.length) return;
+  ensureV9State();
+  var avui2 = avuiStr();
+  var exOrd = S.examens.filter(function(e){ return e.data >= avui2; }).sort(function(a, b){ return (a.data+'T'+(a.hora||'23:59')).localeCompare(b.data+'T'+(b.hora||'23:59')); });
+  if (!exOrd.length) return;
+  v9SyncExamTasks(exOrd);
+  v9StartPlan('automatic_recalculate');
+  S.pla = S.pla.filter(function(b){ return b.fet || b.status === 'done'; });
+  _calcularBlocs(exOrd);
+  v9RecomputeTaskStats();
+  desar(); renderPla(); renderAval();
+}
+
+function rebalancejarPla(){
+  if (!S.modeAval || !S.examens.length) return;
+  ensureV9State();
+  var avui2 = avuiStr();
+  var exOrd = S.examens.filter(function(e){ return e.data >= avui2; }).sort(function(a, b){ return (a.data+'T'+(a.hora||'23:59')).localeCompare(b.data+'T'+(b.hora||'23:59')); });
+  if (!exOrd.length) return;
+  // Rebalanceig: no crea pla nou; només retira blocs futurs no executats i recol·loca hores pendents.
+  S.pla = S.pla.filter(function(b){ return b.fet || b.status === 'done' || b.data < avui2 || (b.data === avui2 && hm(b.fi) <= araMin()); });
+  _calcularBlocs(exOrd);
+  v9RecomputeTaskStats();
+  var deficit = S.projectTasks.reduce(function(t, task){ return t + Math.max(0, (task.targetMinutes||0) - (task.plannedMinutes||0) - (task.realMinutes||0)); }, 0);
+  desar(); renderPla(); renderAval(); renderAgDia();
+  if (deficit > 0) avis('Amb aquest canvi falten '+fmtH(deficit)+' per complir tots els objectius.','warn');
+  else avis('Pla rebalancejat sense crear nova versió.','ok');
+}
+
+function _calcularBlocs(exOrd){
+  ensureV9State();
+  var avui2 = avuiStr(), minSessio = S.config.minSessio || 90;
+  var plan = v9CurrentPlanOrCreate();
+  var dataFi = exOrd[exOrd.length-1].data;
+  var dies = []; var d = new Date(avui2+'T00:00');
+  while (d.toISOString().split('T')[0] <= dataFi){ dies.push(d.toISOString().split('T')[0]); d.setDate(d.getDate()+1); }
+
+  function frangesDisp(ds, limitFi){
+    var minIni = minIniPlanificable(ds);
+    var minFi = limitFi == null ? 1440 : limitFi;
+    return frangesDia(ds).filter(function(f){ return esFranjaDisponible(f, ds); })
+      .map(function(f){ return limitFranja(f, ds, minIni, minFi); })
+      .filter(Boolean);
+  }
+  function overlapsPlan(ds, ini, fi){
+    return S.pla.some(function(b){ return b.data === ds && b.status !== 'cancelled' && hm(b.ini) < fi && hm(b.fi) > ini; });
+  }
+  function pushBlock(ex, taskId, activityId, ds, iniM, fiM, tipus, fase){
+    if (fiM - iniM < 5) return false;
+    var deadline = hm(ex.hora || '23:59');
+    if (ds > ex.data) return false;
+    if (ds === ex.data && fiM > deadline) return false;
+    if (overlapsPlan(ds, iniM, fiM)) return false;
+    S.pla.push(v9PlanBlock({ data:ds, ini:mh(iniM), fi:mh(fiM), subjectId:ex.subjectId, activityId:activityId || ex.subjectId, examId:ex.id, projectId:ex.projectId || null, taskId:taskId || null, tipus:tipus, fase:fase || null, fet:false }));
+    return true;
+  }
+  function plannedForTask(taskId){
+    return S.pla.filter(function(b){ return b.taskId === taskId && b.status !== 'cancelled' && b.status !== 'replaced'; }).reduce(function(t,b){ return t + durMin(b.ini,b.fi); }, 0);
+  }
+
+  v9SyncExamTasks(exOrd);
+  var firstExam = exOrd[0];
+  var diagPct = Math.max(10, Math.min(70, Number(S.config.diagnosticPct == null ? 40 : S.config.diagnosticPct)));
+  var targets = {};
+  exOrd.forEach(function(ex){
+    targets[ex.id] = {
+      main: v9TargetStudyMinutes(ex),
+      mainKind: v9MainTaskKind(ex),
+      sprint: v9SprintMinutes(ex),
+      diagnostic: v9MainTaskKind(ex)==='study' ? Math.round(v9TargetStudyMinutes(ex) * diagPct / 100) : 0,
+      concentrated: v9MainTaskKind(ex)==='study' ? Math.max(0, v9TargetStudyMinutes(ex) - Math.round(v9TargetStudyMinutes(ex) * diagPct / 100)) : v9TargetStudyMinutes(ex)
+    };
+  });
+
+  // 1) Sprint: tan a prop com sigui possible, mai després de l'examen.
+  exOrd.forEach(function(ex){
+    var remaining = Math.max(0, targets[ex.id].sprint - plannedForTask(ex.reviewTaskId));
+    if (remaining < 5) return;
+    var cursorDate = addDies(ex.data, -1);
+    while (cursorDate >= avui2 && remaining >= 5){
+      var limitFi = cursorDate === ex.data ? hm(ex.hora||'23:59') : 1440;
+      var be = frangesDisp(cursorDate, limitFi).sort(function(a,b){ return hm(b.fi) - hm(a.fi); });
+      for (var i=0; i<be.length && remaining>=5; i++){
+        var bl = be[i], end = hm(bl.fi), startMin = Math.max(hm(bl.ini), end - remaining);
+        if (pushBlock(ex, ex.reviewTaskId, ex.reviewActivityId, cursorDate, startMin, end, 'sprint', 'sprint')) remaining -= (end - startMin);
+      }
+      cursorDate = addDies(cursorDate, -1);
+    }
+    if (remaining > 0) v9RecordDeviation('missing_sprint', {projectId:ex.projectId, taskId:ex.reviewTaskId, planId:plan.id}, {missingMinutes:remaining});
+  });
+
+  // 2) Diagnòstic: intentar tocar totes les assignatures abans del primer examen.
+  var diagRemaining = {};
+  exOrd.forEach(function(ex){ diagRemaining[ex.id] = Math.max(0, (targets[ex.id].mainKind==='study' ? targets[ex.id].diagnostic : 0) - plannedForTask(ex.mainTaskId)); });
+  dies.filter(function(ds){ return ds >= avui2 && ds < firstExam.data; }).forEach(function(ds){
+    var fr = frangesDisp(ds).sort(function(a,b){ return hm(a.ini)-hm(b.ini); });
+    fr.forEach(function(bl){
+      var cur = hm(bl.ini), end = hm(bl.fi);
+      exOrd.slice().sort(function(a,b){ return (diagRemaining[b.id]||0) - (diagRemaining[a.id]||0); }).forEach(function(ex){
+        if (cur >= end) return;
+        var rem = diagRemaining[ex.id] || 0; if (rem < 5) return;
+        var mn = Math.min(end-cur, rem);
+        if (mn < 5) return;
+        if (pushBlock(ex, ex.mainTaskId, ex.mainActivityId, ds, cur, cur+mn, 'estudi', 'diagnostic')){ cur += mn; diagRemaining[ex.id] -= mn; }
+      });
+    });
+  });
+  Object.keys(diagRemaining).forEach(function(exId){
+    if (diagRemaining[exId] > 0){
+      var ex = exOrd.find(function(e){ return e.id === exId; });
+      v9RecordDeviation('incomplete_diagnostic', {projectId:ex.projectId, taskId:ex.mainTaskId, planId:plan.id}, {missingMinutes:diagRemaining[exId]});
+    }
+  });
+
+  function diagnosticCutoff(ex){
+    var bl = S.pla.filter(function(b){
+      return b.examId === ex.id && b.taskId === ex.mainTaskId && b.fase === 'diagnostic' && b.status !== 'cancelled';
+    }).sort(function(a,b){ return (a.data + a.fi).localeCompare(b.data + b.fi); });
+    if (!bl.length) return null;
+    var last = bl[bl.length - 1];
+    return {data:last.data, min:hm(last.fi)};
+  }
+
+  // 3) Estudi compactat: cap enrere des de cada deadline, però mai abans del darrer diagnòstic del mateix projecte.
+  exOrd.forEach(function(ex){
+    var remaining = Math.max(0, targets[ex.id].main - plannedForTask(ex.mainTaskId));
+    if (remaining < 5) return;
+    var scan = ex.data;
+    var cutoff = targets[ex.id].mainKind === 'study' ? diagnosticCutoff(ex) : null;
+
+    // Sprint cutoff: el compactat no pot solapar-se amb cap bloc d'sprint
+    var sprintBlocs = S.pla.filter(function(b){
+      return b.examId === ex.id && b.tipus === 'sprint' && b.status !== 'cancelled';
+    }).sort(function(a,b){ return (a.data+a.ini).localeCompare(b.data+b.ini); });
+    var sprintCutoff = sprintBlocs.length ? {data: sprintBlocs[0].data, min: hm(sprintBlocs[0].ini)} : null;
+
+    while (scan >= avui2 && remaining >= 5){
+      if (cutoff && scan < cutoff.data) break;
+      if (sprintCutoff && scan > sprintCutoff.data) { scan = addDies(scan, -1); continue; }
+      var limitFi = scan === ex.data ? hm(ex.hora||'23:59') : 1440;
+      if (sprintCutoff && scan === sprintCutoff.data) limitFi = Math.min(limitFi, sprintCutoff.min);
+      var fr = frangesDisp(scan, limitFi).sort(function(a,b){ return hm(b.fi)-hm(a.fi); });
+      fr.forEach(function(bl){
+        if (remaining < 5) return;
+        var end = hm(bl.fi), start = hm(bl.ini);
+        if (cutoff && scan === cutoff.data) start = Math.max(start, cutoff.min);
+        if (end - start < Math.min(5, remaining)) return;
+        var used = Math.min(remaining, end-start);
+        var ini = end - used;
+        if (cutoff && scan === cutoff.data && ini < cutoff.min) ini = cutoff.min;
+        used = end - ini;
+        if (used < 5) return;
+        var mainTipus = targets[ex.id].mainKind === 'study' ? 'estudi' : 'treball';
+        var mainFase = targets[ex.id].mainKind === 'study' ? 'compactat' : 'confeccio';
+        if (pushBlock(ex, ex.mainTaskId, ex.mainActivityId, scan, ini, end, mainTipus, mainFase)) remaining -= used;
+      });
+      scan = addDies(scan, -1);
+    }
+    if (remaining > 0) v9RecordDeviation('missing_study', {projectId:ex.projectId, taskId:ex.mainTaskId, planId:plan.id}, {missingMinutes:remaining});
+  });
+
+  // Tall de seguretat: mai deixar estudi/treball/repàs després del deadline del projecte.
+  S.pla = S.pla.filter(function(b){
+    if (['estudi','treball','sprint'].indexOf(b.tipus) < 0) return true;
+    var ex = S.examens.find(function(e){ return e.id === b.examId; });
+    if (!ex) return true;
+    if (b.data < ex.data) return true;
+    if (b.data > ex.data) return false;
+    return hm(b.fi) <= hm(ex.hora || '23:59');
+  });
+}
+
+// ─── Render Pla ────────────────────────────────────────────
+function renderPla(){
+  if (!S.pla.length){
+    ge('pla-blocs').innerHTML = '<div style="text-align:center;padding:30px;color:#94a3b8"><div style="font-size:40px;margin-bottom:10px">📚</div><div style="font-weight:700;color:#334155">Cap pla generat</div><div class="small">Activa el mode estudi i afegeix els teus exàmens!</div></div>';
+    ge('pla-asig').innerHTML = ''; return;
+  }
+  // Resum assignatures
+  var res = {};
+  S.pla.filter(function(b){ return b.tipus==='estudi' || b.tipus==='treball'; }).forEach(function(b){
+    if (!res[b.subjectId]) res[b.subjectId] = {t:0,f:0};
+    res[b.subjectId].t += durMin(b.ini,b.fi); if(b.fet) res[b.subjectId].f += durMin(b.ini,b.fi);
+  });
+  ge('pla-asig').innerHTML = '<div class="card">'
+    + Object.entries(res).map(function(e){
+      var s = S.assignatures.find(function(x){ return x.id===e[0]; });
+      var pct = e[1].t>0 ? Math.round(e[1].f/e[1].t*100) : 0;
+      return '<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:3px">'
+        + '<span style="font-weight:700;color:'+(s?s.color:'#334155')+'">'+(s?s.nom:'?')+'</span>'
+        + '<span class="small">'+fmtH(e[1].f)+' / '+fmtH(e[1].t)+' · '+pct+'%</span></div>'
+        + '<div class="prog-bar"><div class="prog-fill" style="width:'+pct+'%;background:'+(s?s.color:'#6366f1')+'"></div></div></div>';
+    }).join('') + '</div>';
+
+  var perExamen = {};
+  S.pla.forEach(function(b){ if (!perExamen[b.examId]) perExamen[b.examId]=[]; perExamen[b.examId].push(b); });
+  var examOrd = S.examens.filter(function(e){ return perExamen[e.id]; }).sort(function(a,b){ return a.data.localeCompare(b.data); });
+  var cont = ge('pla-blocs'); cont.innerHTML = '';
+  var avui2 = avuiStr();
+  examOrd.forEach(function(ex){
+    var s = S.assignatures.find(function(x){ return x.id===ex.subjectId; }), c = s?s.color:'#6366f1';
+    var dies = diasEntre(avui2, ex.data), kind = v9AcademicKind(ex), esEntrega = kind !== 'exam';
+    var grup = document.createElement('div'); grup.className = 'pla-grup';
+    var hdr = document.createElement('div'); hdr.className = 'pla-exam-header';
+    hdr.style.background = 'linear-gradient(135deg,'+c+','+c+'cc)';
+    hdr.innerHTML = '<div style="display:flex;justify-content:space-between;align-items:center">'
+      + '<div><div style="font-size:16px;font-weight:800">'+v9KindIcon(kind)+' '+(s?s.nom:'?')+' · '+v9ProjectTitle(ex)+'</div>'
+      + '<div style="font-size:12px;opacity:.85">'+v9KindLabel(kind)+' · '+v9ScopeLabel(v9AcademicScope(ex))+' · '+ex.data+' · '+ex.hora+'</div></div>'
+      + '<div style="text-align:right"><div style="font-size:22px;font-weight:800">'+(dies<0?'Passat':dies===0?'Avui!':dies+'d')+'</div>'
+      + '<div style="font-size:11px;opacity:.8">fins al deadline</div></div></div>';
+    grup.appendChild(hdr);
+    var blocs = (perExamen[ex.id]||[]).sort(function(a,b){ return (a.data+a.ini).localeCompare(b.data+b.ini); });
+    var diaActual = '';
+    blocs.forEach(function(b){
+      if (b.data !== diaActual){
+        diaActual = b.data;
+        var dO = new Date(b.data+'T12:00');
+        var sep = document.createElement('div');
+        sep.style.cssText = 'font-size:11px;font-weight:700;color:#64748b;margin:8px 0 4px;text-transform:uppercase';
+        sep.textContent = dO.toLocaleDateString('ca-ES',{weekday:'short',day:'numeric',month:'short'});
+        grup.appendChild(sep);
+      }
+      var div = document.createElement('div');
+      div.className = 'pla-bloc '+(b.tipus==='sprint'?'sprint':'estudi');
+      if (b.tipus==='estudi' || b.tipus==='treball') div.style.borderLeftColor = c;
+      var contextTxt = (s?s.nom:'?') + ' · ' + v9ProjectTitle(ex);
+      var faseTxt = b.tipus === 'sprint' ? '⚡ Sprint' : (b.tipus === 'treball' ? '✏️ '+v9MainTaskLabel(ex) : (b.fase === 'diagnostic' ? '🧪 Estudi diagnòstic' : (b.fase === 'compactat' ? '📚 Estudi compactat' : '📚 Estudi')));
+      div.innerHTML = '<div style="flex:1">'
+        + '<div style="font-size:13px;font-weight:800;color:'+(b.tipus==='sprint'?'#ef4444':c)+'">'
+        + contextTxt + ' — ' + faseTxt + '</div>'
+        + '<div class="small">'+v9KindLabel(kind)+' · '+v9ScopeLabel(v9AcademicScope(ex))+' · '+b.ini+' – '+b.fi+' · '+durMin(b.ini,b.fi)+'min</div></div>';
+      grup.appendChild(div);
+    });
+    // Fita
+    var fitaData = new Date(ex.data+'T12:00');
+    var fitaDiesText = dies<0?'Passat':dies===0?'Avui! 😬':dies===1?'Demà! 😱':dies+'d restants';
+    var fita = document.createElement('div');
+    fita.style.cssText = 'margin-top:10px;border-radius:12px;padding:12px 14px;display:flex;align-items:center;gap:12px;background:linear-gradient(135deg,'+c+'22,'+c+'11);border:2px dashed '+c;
+    fita.innerHTML = '<div style="font-size:28px">'+v9KindIcon(kind)+'</div>'
+      + '<div style="flex:1"><div style="font-size:13px;font-weight:800;color:'+c+'">'+v9KindLabel(kind).toUpperCase()+' · '+v9ProjectTitle(ex)+' · '+ex.hora+'h</div>'
+      + '<div style="font-size:12px;color:#334155;font-weight:600">'+fitaData.toLocaleDateString('ca-ES',{weekday:'long',day:'numeric',month:'long'})+'</div></div>'
+      + '<div style="font-size:12px;font-weight:800;color:'+c+';text-align:right">'+fitaDiesText+'</div>';
+    grup.appendChild(fita);
+    cont.appendChild(grup);
+  });
+}
+
+// ═══════════════════════════════════════════════════════════
+// MODALS
+// ═══════════════════════════════════════════════════════════
+function tancar(){ ge('modal-ov').classList.remove('on'); }
+function obrir(html){ ge('modal-cos').innerHTML = html; ge('modal-ov').classList.add('on'); }
+
+function initDiesMod(dataStr){
+  if (!S.diesMod[dataStr]){
+    var diaEu = diaEU(dataStr);
+    S.diesMod[dataStr] = JSON.parse(JSON.stringify(S.patro[diaEu]||[]))
+      .filter(function(f){ return f.activitatId !== 'act-cole'; })
+      .map(function(f){ return Object.assign({}, f, {id:f.id||uid(), activa:true}); });
+
+    // Afegir també les assignatures que abans es generaven dinàmicament.
+    // Així, quan un dia queda modificat, l'horari escolar també és editable i persistent.
+    if (!esVacances(dataStr)){
+      S.assignatures.forEach(function(s){
+        var h = s.horari && s.horari[diaEu];
+        if (!h) return;
+        var franges = Array.isArray(h) ? h : [h];
+        franges.forEach(function(f, j){
+          if (f && f.ini && f.fi){
+            S.diesMod[dataStr].push({
+              id:'hc-'+s.id+'-'+diaEu+'-'+j,
+              activitatId:s.id,
+              ini:f.ini,
+              fi:f.fi,
+              activa:true,
+              _horariCole:true
+            });
+          }
+        });
+      });
+    }
+    S.diesMod[dataStr].sort(function(a,b){ return hm(a.ini)-hm(b.ini); });
+  }
+}
+
+function afegirFranjaManualDia(dataStr, actId, ini, fi){
+  if (!actId || actId === ID_BLANC || !ini || !fi) return;
+  if (hm(fi) <= hm(ini)) return;
+  initDiesMod(dataStr);
+  var nIni = hm(ini), nFi = hm(fi), novaLlista = [];
+  (S.diesMod[dataStr]||[]).forEach(function(f){
+    var fIni = hm(f.ini), fFi = hm(f.fi);
+    if (fFi <= nIni || fIni >= nFi){
+      novaLlista.push(f);
+      return;
+    }
+    // Retallar la franja existent perquè la nova activitat no se solapi.
+    if (fIni < nIni) novaLlista.push(Object.assign({}, f, {id:uid(), fi:ini}));
+    if (fFi > nFi) novaLlista.push(Object.assign({}, f, {id:uid(), ini:fi}));
+  });
+  novaLlista.push({id:uid(), activitatId:actId, ini:ini, fi:fi, activa:true, _manual:true});
+  novaLlista.sort(function(a,b){ return hm(a.ini)-hm(b.ini); });
+  S.diesMod[dataStr] = novaLlista;
+}
+
+// Selector activitats per a l'agenda (excl. fixes, cole, estudi genèric)
+function selActAsig(actId){
+  var placeholder = actId ? '' : '<option value="" disabled selected>— Tria una activitat —</option>';
+  var gS = '<optgroup label="Assignatures">'
+    + S.assignatures.map(function(s){ return '<option value="'+s.id+'"'+(s.id===actId?' selected':'')+'>'+s.nom+'</option>'; }).join('')
+    + '</optgroup>';
+  var gA = '<optgroup label="Activitats">'
+    + S.activitats.filter(function(a){
+        if (a.active === false) return false;
+        if (a.id===ID_BLANC||a.id==='act-cole'||a.id==='act-estudi') return false;
+        if (a.automatic && a.projectId){
+          var proj = (S.projects||[]).find(function(p){ return p.id===a.projectId; });
+          if (proj && proj.status==='completed') return false;
+          if (proj && proj.deadlineDate && proj.deadlineDate < avuiStr()) return false;
+        }
+        if (a.automatic && a.kind === 'review') return false;
+        return true;
+      })
+      .map(function(a){ return '<option value="'+a.id+'"'+(a.id===actId?' selected':'')+'>'+a.nom+'</option>'; }).join('')
+    + '</optgroup>';
+  return '<label>Activitat</label><select id="m-act">'+placeholder+gS+gA+'</select>';
+}
+
+function selActAsigConfig(actId){
+  var placeholder = actId ? '' : '<option value="" disabled selected>— Tria una activitat base —</option>';
+  var gS = '<optgroup label="Assignatures">'
+    + S.assignatures.map(function(s){ return '<option value="'+s.id+'"'+(s.id===actId?' selected':'')+'>'+s.nom+'</option>'; }).join('')
+    + '</optgroup>';
+  var gA = '<optgroup label="Activitats base">'
+    + S.activitats.filter(function(a){
+        return a.active !== false
+          && a.automatic !== true
+          && !a.projectId
+          && !a.taskId
+          && a.id !== ID_BLANC
+          && a.id !== 'act-cole'
+          && !a.fixe;
+      })
+      .map(function(a){ return '<option value="'+a.id+'"'+(a.id===actId?' selected':'')+'>'+a.nom+'</option>'; }).join('')
+    + '</optgroup>';
+  return '<label>Activitat base</label><select id="m-act">'+placeholder+gS+gA+'</select>'
+    + '<div class="small" style="margin-top:4px">El configurador només edita la rutina setmanal. L’estudi, sprint i treballs generats es gestionen des de l’Agenda.</div>';
+}
+
+function obrirModalNovaFranja(ini, fi2, dataStr){
+  // Bloquejar dates passades
+  if (dataStr < avuiStr()){
+    avis('No es poden afegir franjes en dates passades.','warn'); return;
+  }
+  var iniDisp = ini, fi2Disp = fi2;
+  if (dataStr === avuiStr()){
+    var araActual = mh(araMin());
+    if (hm(araActual) > hm(fi2)){ avis('Aquest espai ja ha passat.','warn'); return; }
+    if (hm(araActual) > hm(ini)) ini = araActual;
+  }
+  obrir('<h3 style="margin-bottom:12px">Nova franja ✨</h3>'
+    + '<div style="background:#f0fdf4;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#15803d">Espai disponible: <strong>'+iniDisp+' – '+fi2Disp+'</strong></div>'
+    + selActAsig('')
+    + '<label>Hora inici</label><input type="time" id="m-ini" value="'+ini+'">'
+    + '<label>Hora fi</label><input type="time" id="m-fi" value="'+fi2+'">'
+    + '<div class="row-btns" id="mb"></div>');
+  var bts = ge('mb');
+  var bD3 = document.createElement('button'); bD3.className = 'btn-p'; bD3.textContent = 'Afegir ✅';
+  bD3.addEventListener('click', function(){
+    var actId = ge('m-act').value, ini2 = ge('m-ini').value, fi3 = ge('m-fi').value;
+    if (!actId||!ini2||!fi3){ avis('Omple tots els camps.','warn'); return; }
+    v9MarkManualReleaseUsable(dataStr, ini2, fi3);
+    afegirFranjaManualDia(dataStr, actId, ini2, fi3);
+    desar(); tancar();
+    if (S.modeAval) recalcularPla();
+    renderAgDia(); avis('Franja afegida! 🎉','ok');
+  }); bts.appendChild(bD3);
+  var bC = document.createElement('button'); bC.className = 'btn'; bC.textContent = 'Cancel·lar'; bC.addEventListener('click', tancar); bts.appendChild(bC);
+}
+
+function obrirModalEditFranja(fid, dataStr){
+  // Detectar si la franja ja ha passat (dia passat, o avui i hora fi ja passada)
+  var avui2 = avuiStr();
+  var esPasada = dataStr < avui2 || (dataStr === avui2 && (function(){
+    // Buscar la fi de la franja per saber si ja ha acabat
+    var bpla2 = S.pla.find(function(b){ return b.id === fid; });
+    if (bpla2) return hm(bpla2.fi) <= araMin();
+    var fd = (S.diesMod[dataStr]||[]).find(function(x){ return x.id === fid; });
+    return fd ? hm(fd.fi) <= araMin() : false;
+  })());
+
+  if (esPasada){
+    // Mostrar avís i demanar confirmació abans d'editar
+    obrir('<div style="text-align:center;padding:8px 0 16px">'
+      + '<div style="font-size:40px;margin-bottom:10px">⏪</div>'
+      + '<h3 style="margin-bottom:8px">Activitat ja realitzada</h3>'
+      + '<p style="font-size:13px;color:#64748b;margin-bottom:16px">Aquesta franja ja ha passat.<br>Vols editar igualment el registre?</p>'
+      + '<div class="row-btns" id="mb"></div></div>');
+    var bts = ge('mb');
+    var bOk = document.createElement('button'); bOk.className = 'btn-w'; bOk.textContent = '✏️ Editar igualment';
+    bOk.addEventListener('click', function(){ _obrirEditorFranja(fid, dataStr, true); });
+    bts.appendChild(bOk);
+    var bC = document.createElement('button'); bC.className = 'btn'; bC.textContent = 'Cancel·lar'; bC.addEventListener('click', tancar);
+    bts.appendChild(bC);
+    return;
+  }
+  _obrirEditorFranja(fid, dataStr, esPasada);
+}
+
+function _obrirEditorFranja(fid, dataStr, esPasada){
+  // Bloc generat pel pla d'estudi
+  var bpla = S.pla.find(function(b){ return b.id === fid; });
+  if (bpla){
+    var s = S.assignatures.find(function(x){ return x.id === bpla.subjectId; });
+    var c = s ? s.color : '#6366f1';
+    var esSprint = bpla.tipus === 'sprint';
+    obrir('<h3 style="margin-bottom:4px">'+(esSprint?'⚡ Sprint':'📚 Estudi planificat')+'</h3>'
+      + '<div style="font-size:13px;font-weight:700;color:'+c+';margin-bottom:12px">'+(s?s.nom:'?')+'</div>'
+      + '<div style="background:#f8fafc;border-radius:10px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:#334155">'
+      + '⏰ '+bpla.ini+' – '+bpla.fi+' · '+durMin(bpla.ini,bpla.fi)+'min</div>'
+      + '<label>Hora inici</label><input type="time" id="m-ini" value="'+bpla.ini+'">'
+      + '<label>Hora fi</label><input type="time" id="m-fi" value="'+bpla.fi+'">'
+      + (esPasada ? '<div style="display:flex;align-items:center;gap:10px;padding:10px 0;border-top:1px solid #f1f5f9;margin-top:6px">'
+        + '<input type="checkbox" id="m-fet"'+(bpla.fet?' checked':'')+' style="width:auto;margin:0;transform:scale(1.5)">'
+        + '<label style="margin:0;font-size:13px;font-weight:700;color:#334155">Marcar com a fet ✅</label>'
+        + '</div>' : '')
+      + '<div class="row-btns" id="mb"></div>');
+    var bts = ge('mb');
+    function confirmarCanviPla(accio){
+      var oldIni = bpla.ini, oldFi = bpla.fi;
+      obrir('<div style="text-align:center;padding:8px 0 16px">'
+        + '<div style="font-size:40px;margin-bottom:10px">⚠️</div>'
+        + '<h3 style="margin-bottom:8px">Activitat planificada</h3>'
+        + '<p style="font-size:13px;color:#64748b;margin-bottom:16px">Estàs modificant una activitat planificada per assolir els objectius d\'estudi. Aquest canvi pot afectar el compliment del pla.</p>'
+        + '<div class="row-btns" id="mb"></div></div>');
+      var bx = ge('mb');
+      var bReb = document.createElement('button'); bReb.className='btn-p'; bReb.textContent='Rebalancejar';
+      bReb.addEventListener('click', function(){ accio(); v9RecordDeviation('planned_block_changed', bpla, {oldStart:oldIni, oldEnd:oldFi, newStart:bpla.ini, newEnd:bpla.fi, action:'rebalance'}); rebalancejarPla(); tancar(); }); bx.appendChild(bReb);
+      var bAccept = document.createElement('button'); bAccept.className='btn-w'; bAccept.textContent='Acceptar desviació';
+      bAccept.addEventListener('click', function(){ accio(); v9RecordDeviation('planned_block_changed', bpla, {oldStart:oldIni, oldEnd:oldFi, newStart:bpla.ini, newEnd:bpla.fi, action:'accepted_deviation'}); v9RecomputeTaskStats(); desar(); tancar(); renderAgDia(); renderPla(); avis('Desviació registrada.','ok'); }); bx.appendChild(bAccept);
+      var bRec = document.createElement('button'); bRec.className='btn'; bRec.textContent='Recalcular pla';
+      bRec.addEventListener('click', function(){ accio(); recalcularPla(); tancar(); renderAgDia(); avis('Pla recalculat amb nova versió.','ok'); }); bx.appendChild(bRec);
+      var bCancel = document.createElement('button'); bCancel.className='btn'; bCancel.textContent='Cancel·lar'; bCancel.addEventListener('click', tancar); bx.appendChild(bCancel);
+    }
+    var bD3 = document.createElement('button'); bD3.className = 'btn-p'; bD3.textContent = 'Desar ✅';
+    bD3.addEventListener('click', function(){
+      confirmarCanviPla(function(){ bpla.ini = ge('m-ini').value; bpla.fi = ge('m-fi').value; if (ge('m-fet')) bpla.fet = ge('m-fet').checked; });
+    }); bts.appendChild(bD3);
+    var bEl = document.createElement('button'); bEl.className = 'btn-d'; bEl.textContent = 'Eliminar';
+    bEl.addEventListener('click', function(){
+      confirmarCanviPla(function(){ bpla.status='cancelled'; S.pla = S.pla.filter(function(b){ return b.id !== fid; }); });
+    }); bts.appendChild(bEl);
+    var bC = document.createElement('button'); bC.className = 'btn'; bC.textContent = 'Cancel·lar'; bC.addEventListener('click', tancar); bts.appendChild(bC);
+    return;
+  }
+  initDiesMod(dataStr);
+  var f = S.diesMod[dataStr].find(function(x){ return x.id === fid; });
+  // Si no es troba a diesMod (franja del patró base o horari cole), copiar-la
+  if (!f){
+    var frDia = frangesDia(dataStr);
+    var fOrig = frDia.find(function(x){ return x.id === fid; });
+    if (!fOrig || fOrig._blanc || fOrig._pla) return; // no editable
+    // Afegir com a franja manual a diesMod
+    var nova = {id: fOrig._horariCole ? uid() : (fOrig.id||uid()),
+      activitatId: fOrig.activitatId, ini: fOrig.ini, fi: fOrig.fi, activa: true, _manual: false};
+    S.diesMod[dataStr].push(nova);
+    S.diesMod[dataStr].sort(function(a,b){ return hm(a.ini)-hm(b.ini); });
+    f = nova;
+  }
+  obrir('<h3 style="margin-bottom:12px">Editar franja ✏️</h3>'
+    + selActAsig(f.activitatId)
+    + '<label>Hora inici</label><input type="time" id="m-ini" value="'+f.ini+'">'
+    + '<label>Hora fi</label><input type="time" id="m-fi" value="'+f.fi+'">'
+    + '<div class="row-btns" id="mb"></div>');
+  var bts = ge('mb');
+  var bD3 = document.createElement('button'); bD3.className = 'btn-p'; bD3.textContent = 'Desar ✅';
+  bD3.addEventListener('click', function(){
+    f.activitatId=ge('m-act').value; f.ini=ge('m-ini').value; f.fi=ge('m-fi').value;
+    desar(); tancar(); if(S.modeAval) recalcularPla(); renderAgDia(); avis('Desat! ✅','ok');
+  }); bts.appendChild(bD3);
+  var bEl = document.createElement('button'); bEl.className = 'btn-d'; bEl.textContent = 'Eliminar';
+  bEl.addEventListener('click', function(){
+    v9RegisterManualRelease(dataStr, f, 'user');
+    S.diesMod[dataStr] = S.diesMod[dataStr].filter(function(x){ return x.id !== f.id; });
+    desar(); tancar(); if(S.modeAval) rebalancejarPla(); renderAgDia();
+  }); bts.appendChild(bEl);
+  var bC = document.createElement('button'); bC.className = 'btn'; bC.textContent = 'Cancel·lar'; bC.addEventListener('click', tancar); bts.appendChild(bC);
+}
+
+function obrirModalFranjaPatro(ini, fi2){
+  obrir('<h3 style="margin-bottom:12px">Nova franja base — '+DIES[patroDia]+' 📅</h3>'
+    + '<div style="background:#f0fdf4;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#15803d">Espai: <strong>'+ini+' – '+fi2+'</strong></div>'
+    + selActAsigConfig('')
+    + '<label>Hora inici</label><input type="time" id="m-ini" value="'+ini+'">'
+    + '<label>Hora fi</label><input type="time" id="m-fi" value="'+fi2+'">'
+    + '<div class="row-btns" id="mb"></div>');
+  var bts = ge('mb');
+  var bD3 = document.createElement('button'); bD3.className = 'btn-p'; bD3.textContent = 'Afegir ✅';
+  bD3.addEventListener('click', function(){
+    var actId=ge('m-act').value, ini2=ge('m-ini').value, fi3=ge('m-fi').value;
+    if(!actId||!ini2||!fi3){ avis('Omple tots els camps.','warn'); return; }
+    if(esActivitatGeneradaPlanificador(actId)){ avis('Aquesta activitat és generada pel pla i no pot anar al configurador.','warn'); return; }
+    if(!S.patro[patroDia]) S.patro[patroDia]=[];
+    S.patro[patroDia].push({id:uid(), activitatId:actId, ini:ini2, fi:fi3});
+    S.patro[patroDia].sort(function(a,b){ return hm(a.ini)-hm(b.ini); });
+    desar(); tancar(); renderPatro(); avis('Franja afegida! 🎉','ok');
+  }); bts.appendChild(bD3);
+  var bC = document.createElement('button'); bC.className = 'btn'; bC.textContent = 'Cancel·lar'; bC.addEventListener('click', tancar); bts.appendChild(bC);
+}
+
+function obrirModalEditFranjaPatro(fid){
+  var f = (S.patro[patroDia]||[]).find(function(x){ return x.id===fid && esFranjaConfiguracioValida(x); }); if(!f) return;
+  obrir('<h3 style="margin-bottom:12px">Editar franja base — '+DIES[patroDia]+' ✏️</h3>'
+    + selActAsigConfig(f.activitatId)
+    + '<label>Hora inici</label><input type="time" id="m-ini" value="'+f.ini+'">'
+    + '<label>Hora fi</label><input type="time" id="m-fi" value="'+f.fi+'">'
+    + '<div class="row-btns" id="mb"></div>');
+  var bts = ge('mb');
+  var bD3 = document.createElement('button'); bD3.className = 'btn-p'; bD3.textContent = 'Desar ✅';
+  bD3.addEventListener('click', function(){
+    var actId = ge('m-act').value;
+    if(esActivitatGeneradaPlanificador(actId)){ avis('Aquesta activitat és generada pel pla i no pot anar al configurador.','warn'); return; }
+    f.activitatId=actId; f.ini=ge('m-ini').value; f.fi=ge('m-fi').value;
+    netejarPatroConfiguracio(); desar(); tancar(); renderPatro(); avis('Desat!','ok');
+  }); bts.appendChild(bD3);
+  var bEl = document.createElement('button'); bEl.className = 'btn-d'; bEl.textContent = 'Eliminar';
+  bEl.addEventListener('click', function(){ S.patro[patroDia]=(S.patro[patroDia]||[]).filter(function(x){ return x.id!==fid; }); desar(); tancar(); renderPatro(); }); bts.appendChild(bEl);
+  var bC = document.createElement('button'); bC.className = 'btn'; bC.textContent = 'Cancel·lar'; bC.addEventListener('click', tancar); bts.appendChild(bC);
+}
+
+function obrirDuplicarPatro(){
+  obrir('<h3 style="margin-bottom:12px">Copiar horari de: 📋</h3><div id="mb"></div>');
+  var bts = ge('mb');
+  DIES.forEach(function(d, i){
+    if (i === patroDia) return;
+    var b = document.createElement('button'); b.className = 'btn btn-full'; b.style.cssText = 'text-align:left;margin-bottom:5px;font-weight:600'; b.textContent = d;
+    b.addEventListener('click', function(){
+      S.patro[patroDia] = JSON.parse(JSON.stringify(S.patro[i]||[])).map(function(f){ return Object.assign({}, f, {id:uid()}); });
+      desar(); tancar(); renderPatro(); avis('Horari copiat! ✅','ok');
+    }); bts.appendChild(b);
+  });
+  var bC = document.createElement('button'); bC.className = 'btn btn-full'; bC.style.marginTop='6px'; bC.textContent = 'Cancel·lar'; bC.addEventListener('click', tancar); bts.appendChild(bC);
+}
+
+// ─── Modal examen ──────────────────────────────────────────
+function obrirModalExamen(id){
+  var e = id ? S.examens.find(function(x){ return x.id===id; }) : null;
+  var kind = e ? v9AcademicKind(e) : 'exam';
+  var scope = e ? v9AcademicScope(e) : 'lliure';
+  var sO = S.assignatures.map(function(s){ return '<option value="'+s.id+'"'+(e&&e.subjectId===s.id?' selected':'')+'>'+s.nom+'</option>'; }).join('');
+  if (!sO){ avis('Primer afegeix assignatures a Config! 📚','warn'); return; }
+  function opt(value, label, current){ return '<option value="'+value+'"'+(current===value?' selected':'')+'>'+label+'</option>'; }
+  var kindOptions = opt('exam','📝 Examen',kind)
+    + opt('work','📄 Treball',kind)
+    + opt('worksheets','🧾 Fitxes',kind)
+    + opt('presentation','🎤 Presentació',kind)
+    + opt('reading','📖 Lectura',kind)
+    + opt('review','🔁 Repàs',kind)
+    + opt('other','📌 Altres',kind);
+  var scopeOptions = opt('tema','Tema',scope)
+    + opt('parcial','Parcial',scope)
+    + opt('trimestral','Trimestral',scope)
+    + opt('final','Final',scope)
+    + opt('lliure','Altres',scope);
+  obrir('<h3 style="margin-bottom:12px">'+(e?'Editar':'Nou')+' objectiu acadèmic 📝</h3>'
+    + '<label>Assignatura</label><select id="m-subj">'+sO+'</select>'
+    + '<label>Què has de fer?</label><input type="text" id="m-title" placeholder="Ex: Parcial de fraccions, Treball de funcions..." value="'+(e && e.title ? String(e.title).replace(/"/g,'&quot;') : '')+'">'
+    + '<label>Tipus</label><select id="m-kind">'+kindOptions+'</select>'
+    + '<label>Abast</label><select id="m-scope">'+scopeOptions+'</select>'
+    + '<label id="m-data-label">Data límit</label>'
+    + '<input type="date" id="m-data" value="'+(e?e.data:'')+'">'
+    + '<label>Hora límit</label><input type="time" id="m-hora" value="'+(e?e.hora:'09:00')+'">'
+    + '<label id="m-sprint-label">Hores de revisió final / sprint</label>'
+    + '<input type="number" id="m-sprint" value="'+(e?e.sprintHores:S.config.sprintHores||1.5)+'" min="0" max="5" step="0.5">'
+    + '<div class="small" style="margin-top:6px">El tipus és normalitzat per estadístiques; el camp “què has de fer” és lliure.</div>'
+    + '<div class="row-btns" id="mb"></div>');
+  function refreshLabels(){
+    var k = ge('m-kind').value;
+    var dl = ge('m-data-label'); if(dl) dl.textContent = k === 'exam' ? 'Data de l’examen' : 'Data límit / entrega';
+    var sl = ge('m-sprint-label'); if(sl) sl.textContent = k === 'exam' ? 'Sprint — hores finals' : 'Hores de revisió final';
+  }
+  ge('m-kind').addEventListener('change', refreshLabels);
+  refreshLabels();
+  var bts = ge('mb');
+  var bD3 = document.createElement('button'); bD3.className = 'btn-p'; bD3.textContent = 'Desar ✅';
+  bD3.addEventListener('click', function(){
+    var kind = ge('m-kind').value;
+    var title = (ge('m-title').value || '').trim();
+    var data = {subjectId:ge('m-subj').value, title:title, kind:kind, scope:ge('m-scope').value, data:ge('m-data').value, hora:ge('m-hora').value,
+      sprintHores:Number(ge('m-sprint').value)||0, pes:e && e.pes != null ? e.pes : null, tipus:v9LegacyTipusFromKind(kind)};
+    if (!data.data){ avis('Cal una data.','warn'); return; }
+    if (!data.title){ avis('Cal indicar què has de fer.','warn'); return; }
+    var any = parseInt(data.data.split('-')[0]);
+    if (any < 2020 || any > 2100){ avis('Any incorrecte! 📅','warn'); return; }
+    if (id) Object.assign(S.examens.find(function(e2){ return e2.id===id; }), data);
+    else S.examens.push(Object.assign({id:uid()}, data));
+    ensureV9State();
+    desar(); tancar(); renderAval(); avis(v9KindLabel(kind)+' desat! ✅','ok');
+  }); bts.appendChild(bD3);
+  if (id){
+    var bEl = document.createElement('button'); bEl.className = 'btn-d'; bEl.textContent = 'Eliminar';
+    bEl.addEventListener('click', function(){
+      var exDel = S.examens.find(function(e2){ return e2.id===id; });
+      if (exDel){
+        S.activitats = S.activitats.filter(function(a){
+          return !(a.automatic && a.projectId === exDel.projectId);
+        });
+        S.pla = S.pla.filter(function(b){ return b.examId !== id || b.fet; });
+        var proj = (S.projects||[]).find(function(p){ return p.id === exDel.projectId; });
+        if (proj) proj.status = 'completed';
+      }
+      S.examens = S.examens.filter(function(e2){ return e2.id !== id; });
+      desar(); tancar(); renderAval();
+    }); bts.appendChild(bEl);
+  }
+  var bC = document.createElement('button'); bC.className = 'btn'; bC.textContent = 'Cancel·lar'; bC.addEventListener('click', tancar); bts.appendChild(bC);
+}
+function setTipusEvent(tipus){
+  var k = tipus === 'entrega' ? 'work' : 'exam';
+  var inp = ge('m-kind'); if(inp){ inp.value = k; inp.dispatchEvent(new Event('change')); }
+}
+
+// ═══════════════════════════════════════════════════════════
+// NAVEGACIÓ
+// ═══════════════════════════════════════════════════════════
+function mostra(p){
+  ['ara','agenda','aval','cfg'].forEach(function(x){
+    var panel=ge('p-'+x), tb=ge('tb-'+x);
+    if(panel) panel.classList.toggle('on', x===p);
+    if(tb) tb.classList.toggle('on', x===p);
+  });
+  if(p==='ara')     renderAra();
+  if(p==='agenda')  renderAgenda();
+  if(p==='aval')    renderAval();
+  if(p==='cfg')     renderCfg();
+}
+
+function avis(txt, tipus){
+  var el = ge('avis'); el.textContent = txt;
+  if(tipus==='ok')  { el.style.background='#f0fdf4'; el.style.color='#15803d'; }
+  else if(tipus==='bad'){ el.style.background='#fff5f5'; el.style.color='#dc2626'; }
+  else              { el.style.background='#fffbeb'; el.style.color='#a16207'; }
+  el.style.display = 'block';
+  clearTimeout(window._at); window._at = setTimeout(function(){ el.style.display='none'; }, 3500);
+}
+
+// ═══════════════════════════════════════════════════════════
+// LISTENERS
+// ═══════════════════════════════════════════════════════════
+ge('tb-ara').addEventListener('click', function(){ mostra('ara'); });
+ge('tb-agenda').addEventListener('click', function(){ mostra('agenda'); });
+ge('tb-aval').addEventListener('click', function(){ mostra('aval'); });
+ge('tb-cfg').addEventListener('click', function(){ mostra('cfg'); });
+ge('modal-ov').addEventListener('click', function(e){ if(e.target===ge('modal-ov')) tancar(); });
+
+ge('btn-vista-dia').addEventListener('click', function(){ agVista='dia'; ge('btn-vista-dia').classList.add('on'); ge('btn-vista-set').classList.remove('on'); renderAgDia(); });
+ge('btn-vista-set').addEventListener('click', function(){ agVista='set'; agDia=avuiStr(); ge('btn-vista-set').classList.add('on'); ge('btn-vista-dia').classList.remove('on'); renderAgSet(); });
+ge('btn-set-prev').addEventListener('click', function(){ agDia = addDies(agDia, -7); renderAgDia(); });
+ge('btn-set-next').addEventListener('click', function(){ agDia = addDies(agDia, 7); renderAgDia(); });
+ge('btn-avui').addEventListener('click', function(){ agDia = avuiStr(); renderAgDia(); });
+ge('btn-set-avui').addEventListener('click', function(){ agDia = avuiStr(); calcAgSetIdx(); renderAgSet(); });
+ge('btn-nova-franja').addEventListener('click', function(){
+  var fr = frangesDia(agDia).filter(function(f){ return !f._blanc; });
+  var ultFi = fr.length ? fr[fr.length-1].fi : '07:00';
+  var ini = ultFi;
+  if (agDia === avuiStr()){
+    var araActual = mh(araMin());
+    if (hm(araActual) > hm(ultFi)) ini = araActual;
+  }
+  obrirModalNovaFranja(ini, '23:59', agDia);
+});
+
+ge('btn-on-aval').addEventListener('click', function(){ S.modeAval=true; desar(); renderAval(); avis('Mode estudi activat! 🚀','ok'); });
+ge('btn-off-aval').addEventListener('click', function(){
+  var nExamens = S.examens.length;
+  var nPla = S.pla.filter(function(b){ return !b.fet; }).length;
+  obrir('<div style="text-align:center;padding:8px 0 4px">'
+    + '<div style="font-size:40px;margin-bottom:10px">⚠️</div>'
+    + '<h3 style="margin-bottom:10px;color:#ef4444">Desactivar mode estudi</h3>'
+    + '<p style="font-size:13px;color:#64748b;margin-bottom:8px">Aquesta acció eliminarà:</p>'
+    + '<div style="background:#fff5f5;border-radius:10px;padding:12px;margin-bottom:16px;text-align:left">'
+    + (nExamens ? '<div style="font-size:13px;color:#dc2626;margin-bottom:4px">📝 '+nExamens+' examen'+(nExamens>1?'s':'')+' / objectiu'+(nExamens>1?'s':'')+' actiu'+(nExamens>1?'s':'')+'</div>' : '')
+    + (nPla ? '<div style="font-size:13px;color:#dc2626">📅 '+nPla+' bloc'+(nPla>1?'s':'')+' del pla pendents</div>' : '')
+    + '<div style="font-size:13px;color:#dc2626;margin-top:4px">📊 Tota la distribució de temps</div>'
+    + '</div>'
+    + '<p style="font-size:12px;color:#94a3b8;margin-bottom:4px">Aquesta acció no es pot desfer.</p>'
+    + '<div class="row-btns" id="mb"></div></div>');
+  var bts = ge('mb');
+  var bOk = document.createElement('button'); bOk.className = 'btn-d'; bOk.textContent = 'Sí, desactivar';
+  bOk.addEventListener('click', function(){
+    var avui2 = avuiStr();
+    S.modeAval = false;
+    // Esborrar pla (excepte fets)
+    S.pla = S.pla.filter(function(b){ return b.fet; });
+    // Resetar pesos dels exàmens vius
+    S.examens.forEach(function(e){ e.pes=0; e._locked=false; });
+    // Esborrar projectes, tasques i activitats automàtiques d'exàmens passats
+    var exPassats = S.examens.filter(function(e){ return e.data < avui2; });
+    var projPassatsIds = exPassats.map(function(e){ return e.projectId; }).filter(Boolean);
+    S.projects = (S.projects||[]).filter(function(p){ return projPassatsIds.indexOf(p.id) < 0; });
+    S.projectTasks = (S.projectTasks||[]).filter(function(t){ return projPassatsIds.indexOf(t.projectId) < 0; });
+    S.activitats = S.activitats.filter(function(a){
+      if (!a.automatic || !a.projectId) return true;
+      return projPassatsIds.indexOf(a.projectId) < 0;
+    });
+    ge('aval-p2').style.display = 'none';
+    ge('aval-resum').style.display = 'none';
+    var ds = ge('d-sliders'); if (ds) ds.innerHTML = '';
+    var pb = ge('pla-blocs'); if (pb) pb.innerHTML = '';
+    var pa = ge('pla-asig'); if (pa) pa.innerHTML = '';
+    desar(); tancar(); renderAval(); avis('Mode estudi desactivat.','ok');
+  }); bts.appendChild(bOk);
+  var bC = document.createElement('button'); bC.className = 'btn'; bC.textContent = 'Cancel·lar';
+  bC.addEventListener('click', tancar); bts.appendChild(bC);
+});
+
+document.addEventListener('click', function(e){
+  if (!e.target) return;
+  var id = e.target.id;
+  if (id==='btn-nou-exam') obrirModalExamen(null);
+  if (id==='btn-a-dist'){
+    var avui3 = avuiStr();
+    if (!S.examens.filter(function(e2){ return e2.data>=avui3; }).length){ avis('Afegeix exàmens futurs!','warn'); return; }
+    ge('aval-p2').style.display='block'; ge('aval-resum').style.display='none'; renderDistribucio();
+  }
+  if (id==='btn-a-p1'){ ge('aval-p2').style.display='none'; ge('aval-resum').style.display=S.pla.filter(function(b){ return !b.fet; }).length?'block':'none'; }
+  if (id==='btn-calcular') calcularPla();
+  if (id==='btn-reajustar'){ ge('aval-resum').style.display='none'; ge('aval-p2').style.display='block'; renderDistribucio(); }
+});
+
+ge('btn-desar-perfil').addEventListener('click', function(){
+  var nom = ge('cfg-nom').value.trim();
+  var avatar = ge('cfg-avatar-custom').value.trim() || '🎓';
+  S.config.nomAlumna = nom; S.config.avatarEmoji = avatar;
+  desar();
+  var grid = ge('cfg-avatar-grid');
+  if (grid) grid.querySelectorAll('button').forEach(function(b){
+    var sel = b.textContent === avatar;
+    b.style.background = sel ? '#ede9fe' : '#f8fafc';
+    b.style.borderColor = sel ? '#818cf8' : '#e2e8f0';
+  });
+  renderAra(); avis('Perfil desat! '+avatar,'ok');
+});
+
+ge('btn-desar-url').addEventListener('click', function(){
+  var url = ge('cfg-app-url').value.trim();
+  if (!url){ avis('Enganxa la URL primer.','warn'); return; }
+  S.config.appUrl = url; desar();
+  ge('cfg-qr-wrap').style.display = 'block';
+  generarQR(url); avis('QR generat! 📱','ok');
+});
+ge('btn-compartir').addEventListener('click', function(){
+  var url = S.config.appUrl;
+  if (!url){ avis('Cal una URL primer.','warn'); return; }
+  if (navigator.share) navigator.share({title:'El meu planificador 📚', text:'Organitza els teus estudis!', url:url});
+  else navigator.clipboard.writeText(url).then(function(){ avis('URL copiada! 📋','ok'); });
+});
+
+ge('btn-desar-curs').addEventListener('click', function(){ S.config.cursIni=ge('cfg-ini').value; S.config.cursFi=ge('cfg-fi').value; desar(); avis('Curs desat! ✅','ok'); });
+ge('btn-nova-vacanca').addEventListener('click', function(){ obrirModalVacanca(null); });
+ge('btn-nova-asig').addEventListener('click', function(){ obrirModalAsig(null); });
+ge('btn-nova-act').addEventListener('click', function(){ obrirModalAct(null); });
+ge('btn-nova-franja-patro').addEventListener('click', function(){
+  var fr = (S.patro[patroDia]||[]).slice().sort(function(a,b){ return hm(a.ini)-hm(b.ini); });
+  var ult = fr.length ? fr[fr.length-1].fi : '07:00';
+  obrirModalFranjaPatro(ult, '23:59');
+});
+ge('btn-dup-patro').addEventListener('click', obrirDuplicarPatro);
+
+ge('btn-desar-params').addEventListener('click', function(){
+  var sprintAntic = S.config.sprintHores;
+  S.config.sprintHores = Number(ge('cfg-sprint').value)||1.5;
+  S.config.nomBlanc    = ge('cfg-nom-blanc').value.trim()||NOM_BLANC_DEF;
+  S.config.minSessio   = Number(ge('cfg-min-sessio').value)||90;
+  S.config.pomodoroMin = Number(ge('cfg-pomodoro').value)||45;
+  S.config.descansMin  = Number(ge('cfg-descans').value)||10;
+  desar();
+  if (S.config.sprintHores !== sprintAntic && S.modeAval && S.pla.filter(function(b){ return !b.fet; }).length > 0){
+    if (confirm('Has canviat el temps de sprint. Vols recalcular el pla?')){ recalcularPla(); avis('Pla recalculat! 🚀','ok'); }
+    else avis('Preferències desades! ✅','ok');
+  } else avis('Preferències desades! ✅','ok');
+});
+
+ge('btn-export-json').addEventListener('click', function(){
+  var data = JSON.stringify(S, null, 2);
+  var blob = new Blob([data], {type:'application/json'});
+  var url = URL.createObjectURL(blob);
+  var a = document.createElement('a');
+  a.href = url; a.download = 'planificador_dades.json';
+  a.click(); URL.revokeObjectURL(url);
+});
+ge('btn-import-json').addEventListener('click', function(){ ge('inp-import-json').click(); });
+ge('inp-import-json').addEventListener('change', function(e){
+  var file = e.target.files[0]; if (!file) return;
+  var reader = new FileReader();
+  reader.onload = function(ev){
+    try {
+      var dades = JSON.parse(ev.target.result);
+      S = dades; desar(); mostra('ara'); avis('Dades carregades! ✅','ok');
+    } catch(err){ avis('Error al carregar el fitxer.','error'); }
+  };
+  reader.readAsText(file);
+  e.target.value = '';
+});
+
+ge('btn-reset').addEventListener('click', function(){
+  obrir('<h3 style="margin-bottom:12px">⚠️ Esborrar tot?</h3>'
+    +'<p style="margin-bottom:16px;color:#64748b;font-size:13px">S\'esborraran TOTES les dades. No es pot desfer.</p>'
+    +'<div style="display:flex;gap:8px">'
+    +'<button class="btn-d" style="flex:1" id="btn-reset-ok">Sí, esborrar</button>'
+    +'<button class="btn" style="flex:1" id="btn-reset-cancel">Cancel·lar</button>'
+    +'</div>');
+  ge('btn-reset-cancel').onclick = tancar;
+  ge('btn-reset-ok').onclick = function(){
+    S.examens = [];
+    S.pla = [];
+    S.projects = [];
+    S.projectTasks = [];
+    S.executions = [];
+    S.availabilityBlocks = [];
+    S.deviations = [];
+    S.plans = [];
+    S.registre = {};
+    S.diesMod = {};
+    S.modeAval = false;
+    // Netejar activitats automàtiques
+    S.activitats = S.activitats.filter(function(a){ return !a.automatic; });
+    desar(); tancar();
+    renderAra(); renderAgenda(); renderAval(); renderCfg();
+    mostra('ara'); avis('Esborrat. ✅','ok');
+  };
+});
+
+ge('btn-pom-ok').addEventListener('click', function(){
+  var banner = ge('ara-pom-banner'); if(!banner) return;
+  banner.style.display = 'none';
+  if (_enDescans){ _enDescans=false; _descansFi=null; _pomodoroIni=Date.now(); avis('Endavant! 💪','ok'); }
+  else { _enDescans=true; _descansFi=Date.now()+(S.config.descansMin||10)*60*1000; _pomodoroIni=null; avis('Descansa '+(S.config.descansMin||10)+' minuts! 🧘','ok'); }
+});
+
+// ═══════════════════════════════════════════════════════════
+// SO POMODORO
+// ═══════════════════════════════════════════════════════════
+function tocarSo(tipus){
+  try {
+    var ctx = new (window.AudioContext||window.webkitAudioContext)();
+    if (tipus === 'descans'){
+      [0, 0.2].forEach(function(t, i){
+        var o=ctx.createOscillator(), g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination); o.type='sine';
+        o.frequency.setValueAtTime(i===0?528:440, ctx.currentTime+t);
+        g.gain.setValueAtTime(0.15, ctx.currentTime+t);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+t+0.4);
+        o.start(ctx.currentTime+t); o.stop(ctx.currentTime+t+0.5);
+      });
+    } else if (tipus === 'tornada'){
+      [523,659,784].forEach(function(freq, i){
+        var o=ctx.createOscillator(), g=ctx.createGain();
+        o.connect(g); g.connect(ctx.destination); o.type='sine'; o.frequency.value=freq;
+        g.gain.setValueAtTime(0.15, ctx.currentTime+i*0.15);
+        g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+i*0.15+0.25);
+        o.start(ctx.currentTime+i*0.15); o.stop(ctx.currentTime+i*0.15+0.3);
+      });
+    } else if (tipus === 'transicio'){
+      var o=ctx.createOscillator(), g=ctx.createGain();
+      o.connect(g); g.connect(ctx.destination); o.type='sine'; o.frequency.value=660;
+      g.gain.setValueAtTime(0.12, ctx.currentTime);
+      g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime+0.35);
+      o.start(ctx.currentTime); o.stop(ctx.currentTime+0.4);
+    }
+  } catch(e){}
+}
+
+// ═══════════════════════════════════════════════════════════
+// PWA + NOTIFICACIONS
+// ═══════════════════════════════════════════════════════════
+var _notifPermis = false;
+function initPWA(){
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
+  if ('Notification' in window && Notification.permission === 'default'){
+    Notification.requestPermission().then(function(p){ _notifPermis = p==='granted'; });
+  } else { _notifPermis = Notification.permission === 'granted'; }
+}
+function notificar(titol, cos, tag){
+  if (!_notifPermis) return;
+  if ('serviceWorker' in navigator && navigator.serviceWorker.controller){
+    navigator.serviceWorker.ready.then(function(reg){
+      reg.showNotification(titol, {body:cos, icon:'icon-192.png', vibrate:[200,100,200], tag:tag||'general', renotify:true});
+    });
+  } else if (Notification.permission === 'granted'){ new Notification(titol, {body:cos}); }
+}
+
+// ─── Banner Pomodoro ───────────────────────────────────────
+function mostrarBannerPomodoro(titol, cos, botoText){
+  var banner = ge('ara-pom-banner'); if (!banner) return;
+  ge('ara-pom-titol').textContent = titol;
+  ge('ara-pom-cos').textContent = cos;
+  ge('btn-pom-ok').textContent = botoText;
+  banner.style.display = 'block';
+  notificar(titol, cos, 'pomodoro');
+}
+
+function checkPomodoro(){
+  if (!sessioActiva || !sessioActiva._esEstudi) return;
+  var ara2 = Date.now();
+  var pomMs = (S.config.pomodoroMin||45) * 60 * 1000;
+  var descMs = (S.config.descansMin||10) * 60 * 1000;
+  if (_enDescans){
+    if (_descansFi && ara2 >= _descansFi){
+      _enDescans=false; _descansFi=null; _pomodoroIni=ara2;
+      var act = getAct(sessioActiva.activitatId);
+      mostrarBannerPomodoro('✅ Tornem!','El descans ha acabat. Prepara\'t per continuar amb '+act.nom+' 💪','🚀 Continuo estudiant!');
+      tocarSo('tornada');
+    }
+  } else {
+    if (_pomodoroIni && ara2 - _pomodoroIni >= pomMs){
+      _enDescans=true; _descansFi=ara2+descMs; _pomodoroIni=null;
+      mostrarBannerPomodoro('⏰ Para un moment!','Porta '+(S.config.pomodoroMin||45)+'min estudiant. Descansa '+(S.config.descansMin||10)+' minuts 🧘','✅ Ja descanso!');
+      tocarSo('descans');
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+// INICIALITZACIÓ I TICKERS
+// ═══════════════════════════════════════════════════════════
+renderAra();
+initPWA();
+activarWakeLock();
+checkAutoInici();
+
+// Ticker 1 seg — actualitza crono i barra del bloc actiu
+setInterval(function(){
+  if (!ge('p-ara').classList.contains('on')) return;
+  var m = araMin(), avui2 = avuiStr();
+  var fr = frangesDia(avui2);
+  var actual = null;
+  // Mateixa prioritat que renderAra: sessió manual primer
+  if (sessioActiva && sessioActiva._manual){
+    var fi_franja = null;
+    for (var i = 0; i < fr.length; i++){
+      if (!fr[i]._blanc && m >= hm(fr[i].ini) && m < hm(fr[i].fi)){ fi_franja = fr[i].fi; break; }
+    }
+    actual = {activitatId:sessioActiva.activitatId, ini:sessioActiva.ini, fi:fi_franja||mh(m+60)};
+  }
+  if (!actual) for (var i = 0; i < fr.length; i++){
+    if (fr[i]._pla && m >= hm(fr[i].ini) && m < hm(fr[i].fi)){ actual=fr[i]; break; }
+  }
+  if (!actual) for (var i = 0; i < fr.length; i++){
+    if (!fr[i]._pla && m >= hm(fr[i].ini) && m < hm(fr[i].fi)){ actual=fr[i]; break; }
+  }
+  if (!actual) return;
+  var du=durMin(actual.ini,actual.fi), po=Math.max(0,m-hm(actual.ini));
+  var pct=Math.min(100,Math.round((po/du)*100));
+  var ps=po*60, ph=Math.floor(ps/3600), pm2=Math.floor((ps%3600)/60), pss=ps%60;
+  var cE=ge('ara-crono'), bE=ge('ara-bar'), pE=ge('ara-pct'), qE=ge('ara-queda');
+  if(cE) cE.textContent=ph?ph+':'+String(pm2).padStart(2,'0')+':'+String(pss).padStart(2,'0'):String(pm2).padStart(2,'0')+':'+String(pss).padStart(2,'0');
+  if(bE) bE.style.width=pct+'%';
+  if(pE) pE.textContent=pct+'%';
+  if(qE) qE.textContent=fmtH(Math.max(0,hm(actual.fi)-m));
+}, 1000);
+
+// Ticker 10 seg — render complet (barres, KPIs, auto-inici)
+setInterval(function(){
+  if (ge('p-ara').classList.contains('on')){ renderAra(); checkAutoInici(); }
+  checkPomodoro();
+  renderModeRepos();
+}, 10000);
+
+</script></body>
+</html>
